@@ -32,12 +32,13 @@ export type EvidenceType =
   | 'Dataset'
   | 'Firsthand account';
 
-export type PublishIntent =
-  | 'article'
-  | 'witnessed'
-  | 'saw'
-  | 'ask'
-  | 'opinion';
+export type TimelineStage =
+  | 'Initial report'
+  | 'Official statement'
+  | 'New information'
+  | 'Investigation update'
+  | 'Correction'
+  | 'Latest update';
 
 export interface LocationHierarchy {
   area: string;
@@ -50,29 +51,56 @@ export interface EvidenceItem {
   id: string;
   type: EvidenceType;
   title: string;
+  description: string;
   sourceUrl?: string;
-  publisherOrWitness: string;
   date: string;
-  relationshipToClaim: string;
+  uploaderPseudonym: string;
+  provenanceNote: string;
 }
 
 export interface Claim {
   id: string;
-  statement: string;
-  assessmentStatus: EvidenceStatus;
+  claimText: string;
+  speakerOrSource: string;
+  status: EvidenceStatus;
   statusExplanation: string;
-  sources: string[];
   evidence: EvidenceItem[];
-  conflictingInformation?: string;
-  missingInformation?: string;
-  openQuestions: string[];
+  missingInformation: string[];
+  conflictingReports?: string;
+  generatedQuestions: string[];
+}
+
+export interface TimelineMilestone {
+  id: string;
+  time: string;
+  stage: TimelineStage;
+  title: string;
+  summary: string;
+  sourceOrEntity: string;
+  wasClarifiedOrCorrected?: boolean;
+}
+
+export interface SourceComparisonItem {
+  sourceName: string;
+  authorOrEntity: string;
+  publicationDate: string;
+  headline: string;
+  keyClaimsHighlighted: string[];
+  omittedOrUnmentioned: string[];
+  framingFocus: string;
+}
+
+export interface StoryComparison {
+  commonAgreedFacts: string[];
+  divergentDetails: string[];
+  sources: SourceComparisonItem[];
 }
 
 export interface Article {
   id: string;
   title: string;
   summary: string;
-  content: string[];
+  bodyParagraphs: string[];
   sourceName: string;
   author: string;
   publishedAt: string;
@@ -81,8 +109,9 @@ export interface Article {
   claimsCount: number;
   unresolvedQuestionsCount: number;
   citizenReportsCount: number;
-  imageUrl?: string;
-  claims?: Claim[];
+  claims: Claim[];
+  timeline?: TimelineMilestone[];
+  comparison?: StoryComparison;
 }
 
 export interface CitizenReport {

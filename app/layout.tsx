@@ -1,6 +1,7 @@
 // app/layout.tsx
 import type { Metadata } from 'next';
 import './globals.css';
+import { LocationProvider } from '@/context/LocationContext';
 import { TopNavbar } from '@/components/navigation/TopNavbar';
 import { BottomNav } from '@/components/navigation/BottomNav';
 
@@ -17,9 +18,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col font-sans antialiased pb-20">
-        <TopNavbar />
-        <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-5">{children}</main>
-        <BottomNav />
+        <LocationProvider>
+          <TopNavbar />
+          <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-5">{children}</main>
+          <BottomNav />
+        </LocationProvider>
       </body>
     </html>
   );
