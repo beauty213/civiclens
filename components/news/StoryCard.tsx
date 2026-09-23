@@ -3,7 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Article } from '@/types';
 import { Badge } from '@/components/ui/Badge';
-import { ShieldCheck, HelpCircle, Eye } from 'lucide-react';
+import { ShieldCheck, HelpCircle, Eye, ArrowUpRight } from 'lucide-react';
 
 interface StoryCardProps {
   article: Article;
@@ -24,9 +24,12 @@ export function StoryCard({ article }: StoryCardProps) {
         </span>
       </div>
 
-      <h3 className="text-base font-medium text-zinc-100 leading-snug group-hover:text-indigo-300 transition-colors mb-2">
-        {article.title}
-      </h3>
+      <Link href={`/article/${article.id}`} className="block mb-2">
+        <h3 className="text-base font-medium text-zinc-100 leading-snug group-hover:text-indigo-300 transition-colors flex items-start justify-between gap-2">
+          <span>{article.title}</span>
+          <ArrowUpRight className="w-4 h-4 text-zinc-500 group-hover:text-indigo-300 shrink-0 mt-0.5" />
+        </h3>
+      </Link>
 
       <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed mb-4">
         {article.summary}
@@ -37,18 +40,22 @@ export function StoryCard({ article }: StoryCardProps) {
         <span className="font-medium text-zinc-300">{article.sourceName}</span>
 
         <div className="flex items-center gap-3 font-mono">
-          <span className="flex items-center gap-1 hover:text-zinc-200" title="Extracted Claims">
-            <ShieldCheck className="w-3.5 h-3.5 text-zinc-500" />
+          <Link
+            href={`/article/${article.id}?view=claims`}
+            className="flex items-center gap-1 hover:text-indigo-300 transition-colors"
+            title="Examine Claims with CivicLens"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
             {article.claimsCount} claims
-          </span>
-          <span className="flex items-center gap-1 hover:text-zinc-200" title="Open Questions">
+          </Link>
+          <span className="flex items-center gap-1 text-zinc-400" title="Open Questions">
             <HelpCircle className="w-3.5 h-3.5 text-zinc-500" />
-            {article.unresolvedQuestionsCount} questions
+            {article.unresolvedQuestionsCount}
           </span>
           {article.citizenReportsCount > 0 && (
-            <span className="flex items-center gap-1 hover:text-zinc-200" title="Local Firsthand Reports">
-              <Eye className="w-3.5 h-3.5 text-amber-500/80" />
-              {article.citizenReportsCount} reports
+            <span className="flex items-center gap-1 text-amber-400" title="Local Firsthand Reports">
+              <Eye className="w-3.5 h-3.5" />
+              {article.citizenReportsCount}
             </span>
           )}
         </div>
