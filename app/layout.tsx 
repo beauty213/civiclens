@@ -1,0 +1,67 @@
+// types/index.ts
+
+export type GeographicScope = 'Area' | 'District' | 'State' | 'Country' | 'World';
+
+export type NewsCategory =
+  | 'Politics'
+  | 'Education'
+  | 'Technology'
+  | 'Business'
+  | 'Environment'
+  | 'Science'
+  | 'Sports'
+  | 'Culture'
+  | 'Public Safety'
+  | 'Health'
+  | 'Other';
+
+export type EvidenceStatus =
+  | 'Well-supported'
+  | 'Supported with context'
+  | 'Needs verification'
+  | 'Conflicting reports'
+  | 'Insufficient evidence'
+  | 'Contradicted by available evidence';
+
+export interface LocationHierarchy {
+  area: string;
+  district: string;
+  state: string;
+  country: string;
+}
+
+export interface Article {
+  id: string;
+  title: string;
+  summary: string;
+  sourceName: string;
+  author: string;
+  publishedAt: string;
+  category: NewsCategory;
+  location: LocationHierarchy;
+  claimsCount: number;
+  unresolvedQuestionsCount: number;
+  citizenReportsCount: number;
+  imageUrl?: string;
+}
+
+export interface CitizenReport {
+  id: string;
+  title: string;
+  generalLocation: string;
+  timestamp: string;
+  category: NewsCategory;
+  isFirsthandObservation: boolean;
+  witnessSummary: string;
+  uncertainties: string;
+  evidenceProvided: boolean;
+  authorPseudonym: string;
+}
+
+export interface CivicQuestion {
+  id: string;
+  targetClaim: string;
+  questionText: string;
+  contextSource: string;
+  communityAnswersCount: number;
+}
