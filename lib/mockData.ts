@@ -8,125 +8,6 @@ export const INITIAL_LOCATION = {
   country: 'India',
 };
 
-export const MOCK_ARTICLES: Article[] = [
-  {
-    id: 'art-001',
-    title: 'Bio-Divergent Lake Restoration Project Announced Across West Hyderabad',
-    summary: 'Urban development authority approves a 5-lake revival project focusing on native wetland fauna and industrial run-off diversion.',
-    content: [
-      'The regional urban development board on Monday ratified a phased ecological restoration roadmap spanning five major water bodies in the western IT corridor.',
-      'According to the preliminary briefing, the primary phase allocates municipal environmental funds toward intercepting raw effluent channels and introducing specialized bioswales along the lake peripheries.',
-      'Officials asserted in the circular that groundwater replenishment rates in adjacent residential sectors are projected to increase by 35% within the first 12 months following completion.',
-      'However, environmental engineers noted during public consultations that existing silt accumulation depths exceeding two meters remain unbudgeted under the first procurement phase.'
-    ],
-    sourceName: 'Telangana Urban Chronicle',
-    author: 'Sunita Rao',
-    publishedAt: '2026-09-22T08:30:00Z',
-    category: 'Environment',
-    location: {
-      area: 'Gachibowli',
-      district: 'Hyderabad',
-      state: 'Telangana',
-      country: 'India',
-    },
-    claimsCount: 2,
-    unresolvedQuestionsCount: 3,
-    citizenReportsCount: 2,
-    claims: [
-      {
-        id: 'clm-001',
-        statement: 'Groundwater replenishment rates will increase by 35% within 12 months across adjacent residential sectors.',
-        assessmentStatus: 'Needs verification',
-        statusExplanation: 'The 35% projection is derived solely from an internal department estimate; no peer-reviewed hydrological model or baseline depth data has been publicly released.',
-        sources: ['Urban Board Press Release Doc #ENV-2026-4', 'Municipal Planning Council Briefing'],
-        evidence: [
-          {
-            id: 'ev-1',
-            type: 'Official document',
-            title: 'Municipal Urban Water Board Phase 1 Project Memorandum',
-            publisherOrWitness: 'Urban Development Authority',
-            date: '2026-09-15',
-            relationshipToClaim: 'Asserts the target 35% metric without providing field runoff tests.'
-          }
-        ],
-        conflictingInformation: 'Independent hydrologists argue existing hard-rock substrata and unremoved concrete runoff channels prevent rapid subterranean percolation within a 12-month horizon.',
-        missingInformation: 'Seasonal monsoon intake projections, baseline subterranean monitoring borehole telemetry, and secondary silt excavation plans.',
-        openQuestions: [
-          'Which independent hydrological test verified the 35% recharge metric?',
-          'How will desiltation be managed if silt accumulation exceeds two meters in phase one?'
-        ]
-      },
-      {
-        id: 'clm-002',
-        statement: 'Industrial run-off channels will be completely diverted away from lake intake points prior to the monsoon season.',
-        assessmentStatus: 'Supported with context',
-        statusExplanation: 'Physical diversion canal blueprints have been submitted and civil contracts awarded, but statutory clearance for railway-crossing culverts is still pending.',
-        sources: ['State Pollution Control Board Inspection Log', 'Municipal Engineering Division'],
-        evidence: [
-          {
-            id: 'ev-2',
-            type: 'Dataset',
-            title: 'Industrial Corridor Inflow Analysis (June 2026)',
-            publisherOrWitness: 'State Pollution Control Board',
-            date: '2026-06-30',
-            relationshipToClaim: 'Confirms 4 out of 6 identified illegal inflow pipes were sealed.'
-          }
-        ],
-        missingInformation: 'Timeline for securing statutory right-of-way permissions for culvert construction beneath railway assets.',
-        openQuestions: [
-          'What is the contingency diversion plan if railway culvert clearances are delayed past May?'
-        ]
-      }
-    ]
-  },
-  {
-    id: 'art-002',
-    title: 'Metro Rail Phase-3 Expansion Route Survey Completed',
-    summary: 'The feasibility committee has finalized the proposed corridor connecting major tech hubs to regional transport terminals.',
-    content: [
-      'The Comprehensive Mobility Committee has finalized the route alignments for the Phase-3 Metro corridor traversing Gachibowli to Rajiv Gandhi International Airport.',
-      'The feasibility report states that less than 5% private land will be required for station construction, relying predominantly on central median elevated pillars.'
-    ],
-    sourceName: 'Deccan Civic Post',
-    author: 'K. V. Raman',
-    publishedAt: '2026-09-22T14:15:00Z',
-    category: 'Public Safety',
-    location: {
-      area: 'Madhapur',
-      district: 'Hyderabad',
-      state: 'Telangana',
-      country: 'India',
-    },
-    claimsCount: 1,
-    unresolvedQuestionsCount: 2,
-    citizenReportsCount: 4,
-    claims: [
-      {
-        id: 'clm-101',
-        statement: 'Less than 5% private commercial or residential land will need to be acquired for Phase-3 construction.',
-        assessmentStatus: 'Conflicting reports',
-        statusExplanation: 'Official report cites 4.8% based on station footings, but property association surveys count electrical transformer sub-stations and multi-level parking ramps that push acquisitions to 11%.',
-        sources: ['Phase-3 Master Alignment Draft', 'Commercial Corridor Traders Union Survey'],
-        evidence: [
-          {
-            id: 'ev-101',
-            type: 'Official document',
-            title: 'Elevated Corridor Land Requirement Matrix',
-            publisherOrWitness: 'Metro Rail Corporation',
-            date: '2026-08-10',
-            relationshipToClaim: 'Details pylon locations along median easements.'
-          }
-        ],
-        conflictingInformation: 'Local business associations claim side-road egress ramps are omitted from the 5% estimate.',
-        missingInformation: 'Final designs for three major intermodal transfer stations.',
-        openQuestions: [
-          'Does the 5% acquisition figure include emergency egress routes and electrical step-down stations?'
-        ]
-      }
-    ]
-  }
-];
-
 export const MOCK_CITIZEN_REPORTS: CitizenReport[] = [
   {
     id: 'rep-101',
@@ -139,6 +20,53 @@ export const MOCK_CITIZEN_REPORTS: CitizenReport[] = [
     uncertainties: 'Unclear whether the municipal pump station downstream is functional or switched off.',
     evidenceProvided: true,
     authorPseudonym: 'LocalCommuter92',
+    witnesses: [
+      {
+        id: 'w-1',
+        witnessPseudonym: 'LocalCommuter92',
+        timestamp: '4:10 PM',
+        distanceFromEvent: 'Directly on road (vehicle stopped in queue)',
+        directlyObserved: 'Water rising up to tire rims near the flyover ingress ramp. Storm grating completely covered in wet plastic sheets and construction gravel.',
+        unconfirmedOrHearsay: 'Another driver rolled down their window and said a pump 500m ahead broke down.',
+        statedUncertainty: 'Do not know whether the drainage department was formally dispatched.'
+      },
+      {
+        id: 'w-2',
+        witnessPseudonym: 'Pedestrian_Gbl_4',
+        timestamp: '4:25 PM',
+        distanceFromEvent: 'Walking on elevated service footpath (15 meters away)',
+        directlyObserved: 'Water overflow originating specifically from the secondary culvert grille. Two traffic police personnel arrived on motorcycles to divert cars to the middle lane.',
+        unconfirmedOrHearsay: 'Security guard from nearby commercial complex mentioned trenching work began this morning.',
+        statedUncertainty: 'Unsure whether water is receding or continuing to build up from upstream.'
+      },
+      {
+        id: 'w-3',
+        witnessPseudonym: 'ShopOwner_WiproJunction',
+        timestamp: '4:40 PM',
+        distanceFromEvent: 'Storefront facing the junction (40 meters away)',
+        directlyObserved: 'Traffic backed up approximately 1.2 kilometers toward the main junction. Municipal JCB excavator arrived on the service road at 4:35 PM.',
+        unconfirmedOrHearsay: 'Heard someone say water was shut off at the sector pump.',
+        statedUncertainty: 'Could not see if the JCB started excavation work or just parked.'
+      }
+    ],
+    witnessSynthesis: {
+      commonDetails: [
+        'Water depth reached 6–8 inches near the flyover ingress between 4:00 PM and 4:30 PM.',
+        'Stormwater grates were obstructed by accumulated debris and silt.',
+        'Traffic was throttled to a single passable lane.'
+      ],
+      differentDetails: [
+        'Witness #2 identified secondary culvert as origin point and saw traffic police arrive.',
+        'Witness #3 observed arrival of municipal JCB excavator at 4:35 PM.'
+      ],
+      conflictingAccounts: [
+        'Witness #1 was told the pump broke down; Witness #3 heard the pump was intentionally shut off.'
+      ],
+      unknownDetails: [
+        'Whether an emergency repair crew began active trench clearing before 5:00 PM.',
+        'Status of the downstream discharge sluice.'
+      ]
+    }
   },
   {
     id: 'rep-102',
@@ -154,6 +82,132 @@ export const MOCK_CITIZEN_REPORTS: CitizenReport[] = [
   },
 ];
 
+export const MOCK_ARTICLES: Article[] = [
+  {
+    id: 'art-001',
+    title: 'Bio-Divergent Lake Restoration Project Announced Across West Hyderabad',
+    summary: 'Urban development authority approves a 5-lake revival project focusing on native wetland fauna and industrial run-off diversion.',
+    bodyParagraphs: [
+      'The Regional Urban Development Authority on Tuesday confirmed the formal approval of a multi-crore ecological rehabilitation plan targeting five interconnected water bodies in the western IT corridor.',
+      'According to municipal engineers, the project will implement sub-surface wetland filtration beds and reroute untreated greywater channels away from lake perimeters. Officials state this will eliminate industrial hydrocarbon traces within six months.',
+      'A key component of the plan highlights a projected 35% increase in local groundwater recharge rates within the first year of operation, relying primarily on desiltation along peripheral retention zones.',
+      'However, environmental hydrologists have raised questions regarding the lack of published baseline soil porosity tests and have pointed out that rapid commercial construction upstream could restrict the natural inflow channels necessary for sustained seasonal flushing.'
+    ],
+    sourceName: 'Telangana Urban Chronicle',
+    author: 'Sunita Rao',
+    publishedAt: '2026-09-22T08:30:00Z',
+    category: 'Environment',
+    location: {
+      area: 'Gachibowli',
+      district: 'Hyderabad',
+      state: 'Telangana',
+      country: 'India',
+    },
+    claimsCount: 3,
+    unresolvedQuestionsCount: 4,
+    citizenReportsCount: 2,
+    corrections: [
+      {
+        id: 'cor-01',
+        timestamp: 'September 22, 2026 · 11:45 AM',
+        originalText: '...targeting four interconnected water bodies in the western IT corridor...',
+        correctedText: '...targeting five interconnected water bodies in the western IT corridor...',
+        reason: 'Typographical omission in initial authority press handout.',
+        editorNote: 'Corrected to reflect inclusion of the Nanakramguda retention pond as the fifth site.'
+      }
+    ],
+    claims: [
+      {
+        id: 'claim-101',
+        claimText: 'Sub-surface filtration beds will eliminate industrial hydrocarbon traces from the lake water within six months.',
+        speakerOrSource: 'Municipal Project Lead Engineer',
+        status: 'Needs verification',
+        statusExplanation: 'While sub-surface constructed wetlands can remediate organic waste and moderate hydrocarbons, the published tender does not cite hydrological pilot studies or hydrocarbon saturation thresholds for the chosen filtration volume.',
+        evidence: [
+          {
+            id: 'ev-1',
+            type: 'Official document',
+            title: 'Urban Water Quality Feasibility Tender #409',
+            description: 'Tender specification detailing gravel bed depth and phytoremediation plant species selection.',
+            sourceUrl: 'https://example.gov.in/tenders/409',
+            date: '2026-08-14',
+            uploaderPseudonym: 'CivicAuditor',
+            provenanceNote: 'Published in official municipal gazette archives.'
+          }
+        ],
+        missingInformation: [
+          'Pre-restoration hydrocarbon baseline concentration data (PPM measurements).',
+          'Independent chemical analysis of existing runoff channels.'
+        ],
+        conflictingReports: 'Independent research papers from Osmania University Civil Engineering indicate heavy metal sedimentation may impede microbial remediation.',
+        generatedQuestions: [
+          'What is the maximum flow capacity the filtration beds can treat during peak monsoon surges?',
+          'What independent laboratory will verify the water quality metrics at the 3-month mark?'
+        ],
+        discussionSummary: {
+          commonPoints: [
+            'All participants agree gravel wetlands help reduce organic sludge.',
+            'General consensus that baseline water testing must be open to the public.'
+          ],
+          differentAccounts: [
+            'One local resident observed direct industrial tanker dumping at night.',
+            'Another resident noted stormwater lines are frequently clogged with building rubble.'
+          ],
+          evidenceShared: [
+            'RTI filing copy for Ward 104 storm runoff schematics.',
+            'Geotagged photos of concrete debris near the inflow sluice.'
+          ],
+          unansweredQuestions: [
+            'Who will pay for maintenance after the initial two-year vendor contract expires?'
+          ]
+        },
+        comments: [
+          {
+            id: 'c-1',
+            claimId: 'claim-101',
+            category: 'Firsthand experience',
+            authorPseudonym: 'WiproCircleResident',
+            content: 'I run past this lake daily at 6 AM. The smell of petroleum distillate has been pungent since late August. The storm drain near the north culvert is visibly stained black.',
+            timestamp: '3 hours ago',
+            upvotes: 14
+          }
+        ]
+      }
+    ],
+    timeline: [
+      {
+        id: 'tl-1',
+        time: 'August 14, 2026',
+        stage: 'Initial report',
+        title: 'Tender floated for 5-lake rejuvenation',
+        summary: 'Preliminary proposal submitted by civic planning body citing wetland filtration for IT-corridor water reservoirs.',
+        sourceOrEntity: 'Municipal Gazette Notification',
+        wasClarifiedOrCorrected: false,
+      }
+    ],
+    comparison: {
+      commonAgreedFacts: [
+        'Five water bodies in West Hyderabad are slated for rejuvenation.',
+        'Sub-surface gravel wetland beds will be used for biological filtering.'
+      ],
+      divergentDetails: [
+        'Telangana Urban Chronicle claims water clarity will improve 90% by month 6; Deccan Financial states month 12 minimum.'
+      ],
+      sources: [
+        {
+          sourceName: 'Telangana Urban Chronicle',
+          authorOrEntity: 'Sunita Rao',
+          publicationDate: 'Sept 22, 2026',
+          headline: 'Bio-Divergent Lake Restoration Project Announced Across West Hyderabad',
+          keyClaimsHighlighted: ['35% groundwater recharge increase.'],
+          omittedOrUnmentioned: ['Contractor penalty clauses.'],
+          framingFocus: 'Ecological revitalization & modernization.'
+        }
+      ]
+    }
+  }
+];
+
 export const MOCK_QUESTIONS: CivicQuestion[] = [
   {
     id: 'q-201',
@@ -161,12 +215,5 @@ export const MOCK_QUESTIONS: CivicQuestion[] = [
     questionText: 'Which independent hydrological study verified the 35% recharge metric given existing concrete silt barriers?',
     contextSource: 'Telangana Urban Chronicle',
     communityAnswersCount: 8,
-  },
-  {
-    id: 'q-202',
-    targetClaim: 'Metro Phase-3 will acquire less than 5% private land along the planned corridor.',
-    questionText: 'Does the 5% land acquisition estimate include secondary feeder roads and electrical substations?',
-    contextSource: 'Deccan Civic Post',
-    communityAnswersCount: 14,
-  },
+  }
 ];

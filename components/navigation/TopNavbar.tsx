@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { MapPin, ChevronDown, Bell } from 'lucide-react';
+import { MapPin, ChevronDown, Bell, PlayCircle } from 'lucide-react';
 import { useLocation } from '@/context/LocationContext';
 import { LocationModal } from './LocationModal';
 
@@ -25,8 +25,19 @@ export function TopNavbar() {
             </span>
           </Link>
 
-          {/* Geographic Scope Selector */}
+          {/* Controls */}
           <div className="flex items-center gap-2">
+            {/* Demo Mode Button */}
+            <Link
+              href="/demo"
+              className="flex items-center gap-1 bg-indigo-950/70 border border-indigo-800/80 hover:border-indigo-600 px-2 py-1 rounded text-xs font-mono text-indigo-300 transition-colors"
+              title="Open 18-Step Specification Demo Walkthrough"
+            >
+              <PlayCircle className="w-3.5 h-3.5" />
+              <span>Demo</span>
+            </Link>
+
+            {/* Geographic Scope Selector */}
             <button
               onClick={() => setIsModalOpen(true)}
               className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 px-2.5 py-1.5 rounded text-xs text-zinc-200 transition-colors"
