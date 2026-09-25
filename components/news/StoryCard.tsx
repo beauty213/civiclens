@@ -16,7 +16,7 @@ export function StoryCard({ article }: StoryCardProps) {
         <div className="flex items-center gap-2">
           <Badge variant="accent">{article.category}</Badge>
           <span className="text-xs text-zinc-400 font-mono">
-            {article.location.area} · {article.location.district}
+            {article.location?.area ?? 'Unknown area'} · {article.location?.district ?? 'Unknown district'}
           </span>
         </div>
         <span className="text-xs text-zinc-500 font-mono">

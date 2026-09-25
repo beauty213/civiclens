@@ -1,137 +1,128 @@
-// app/page.tsx
-import React from 'react';
 import Link from 'next/link';
-import { SectionHeader } from '@/components/news/SectionHeader';
-import { StoryCard } from '@/components/news/StoryCard';
+import { ArrowRight, CheckCircle2, FileText, HelpCircle, ShieldAlert, Users } from 'lucide-react';
+import { AiShowdownWidget } from '@/components/home/AiShowdownWidget';
 import { Badge } from '@/components/ui/Badge';
 import { fetchArticles, fetchCitizenReports, fetchCivicQuestions } from '@/lib/dataService';
-import { HelpCircle, AlertTriangle, ArrowRight, Users } from 'lucide-react';
+import { computeArticleScore } from '@/lib/scoring/engine';
+
+function ScoreRing({ score }: { score: number }) {
+  const radius = 34;
+  const circumference = 2 * Math.PI * radius;
+  return (
+    <div className="relative h-24 w-24 shrink-0" aria-label={`${score}% grounded`}>
+      <svg viewBox="0 0 80 80" className="-rotate-90">
+        <circle cx="40" cy="40" r={radius} fill="none" stroke="currentColor" strokeWidth="7" className="text-zinc-800" />
+        <circle cx="40" cy="40" r={radius} fill="none" stroke="currentColor" strokeWidth="7" strokeLinecap="round" className="text-rose-400" strokeDasharray={circumference} strokeDashoffset={circumference - (score / 100) * circumference} />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <strong className="text-xl text-zinc-100">{score}%</strong>
+        <span className="font-mono text-[9px] uppercase text-zinc-500">grounded</span>
+      </div>
+    </div>
+  );
+}
 
 export default async function HomePage() {
-  const articles = await fetchArticles();
-  const reports = await fetchCitizenReports();
-  const questions = await fetchCivicQuestions();
+  const [articles, reports, questions] = await Promise.all([fetchArticles(), fetchCitizenReports(), fetchCivicQuestions()]);
+  const featured = articles[0];
+  const score = featured ? computeArticleScore(featured.claims) : null;
+  const grounded = score?.verifiedCount ?? 0;
+  const speculative = score?.unverifiedCount ?? 0;
+  const disputed = score?.contradictedCount ?? 0;
+  const receipts = featured?.claims?.reduce((total, claim) => total + (claim.evidence?.length ?? 0), 0) ?? 0;
 
   return (
-    <div className="space-y-8">
-      {/* Lead Status Banner */}
-      <section className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-mono uppercase tracking-wider text-indigo-400">
-            Local Civic Pulse
-          </span>
-          <span className="text-xs text-zinc-500">Live Context</span>
-        </div>
-        <h1 className="text-lg font-semibold text-zinc-100">
-          What’s happening around you?
-        </h1>
-        <p className="text-xs text-zinc-400 mt-1">
-          Showing verified coverage and citizen observations for <span className="text-zinc-200 font-medium">Gachibowli, Hyderabad</span>.
-        </p>
-      </section>
-
-      {/* Happening Now & Recent News */}
-      <section>
-        <SectionHeader
-          title="Happening Now & Recent News"
-          subtitle="Direct reports and publications from regional corridors"
-          badgeText="Verified Feed"
-        />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {articles.map((article) => (
-            <StoryCard key={article.id} article={article} />
-          ))}
-        </div>
-      </section>
-
-      {/* Citizen Reports Section */}
-      <section>
-        <SectionHeader
-          title="Citizen Reports & Firsthand Observations"
-          subtitle="Observed by individuals in your immediate area"
-          badgeText="Firsthand"
-        />
-        <div className="space-y-3">
-          {reports.map((report) => (
-            <Link
-              key={report.id}
-              href={`/incident/${report.id}`}
-              className="block p-4 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-indigo-800/80 transition-all cursor-pointer group"
-            >
-              <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-2">
-                  <Badge variant={report.isFirsthandObservation ? 'warning' : 'neutral'}>
-                    {report.isFirsthandObservation ? 'Firsthand Observation' : 'Report'}
-                  </Badge>
-                  {report.witnesses && report.witnesses.length > 1 && (
-                    <span className="flex items-center gap-1 text-[11px] font-mono text-indigo-400 bg-indigo-950/60 px-1.5 py-0.5 rounded border border-indigo-900">
-                      <Users className="w-3 h-3" />
-                      {report.witnesses.length} witnesses corroborated
-                    </span>
-                  )}
+    <div className="space-y-10 pb-12">
+      <section className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-gradient-to-br from-zinc-900 via-zinc-900 to-rose-950/30 p-5 shadow-2xl shadow-black/20 sm:p-8">
+        <div className="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-rose-500/10 blur-3xl" />
+        <div className="relative">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded border border-rose-500/30 bg-rose-500/10 px-2 py-1 font-mono text-[10px] font-semibold tracking-wider text-rose-400">BREAKING CIVIC WATCH</span>
+              <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500">ORR corridor · Gachibowli</span>
+            </div>
+            <span className="font-mono text-[10px] text-rose-300">UPDATED 12 MIN AGO</span>
+          </div>
+          {featured && score && (
+            <>
+              <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_250px] lg:items-center">
+                <div>
+                  <h1 className="max-w-3xl text-3xl font-bold leading-[1.08] tracking-tight text-zinc-50 sm:text-5xl">
+                    Five-lake revival plan promises a cleaner west Hyderabad — but where are the baseline tests?
+                  </h1>
+                  <p className="mt-4 max-w-2xl text-sm leading-relaxed text-zinc-400 sm:text-base">
+                    A municipal restoration announcement is spreading as a guaranteed cleanup. CivicLens separates the documented approval from the six-month performance promise.
+                  </p>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-300"><CheckCircle2 className="mr-1 inline h-3.5 w-3.5" />{grounded} verified</span>
+                    <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs text-amber-300">{speculative} speculative / open</span>
+                    <span className="rounded-full border border-rose-500/20 bg-rose-500/10 px-2.5 py-1 text-xs text-rose-300">{disputed} disputed</span>
+                  </div>
                 </div>
-                <span className="text-xs text-zinc-500 font-mono">{report.timestamp}</span>
-              </div>
-
-              <h4 className="text-sm font-medium text-zinc-200 group-hover:text-indigo-300 transition-colors">
-                {report.title}
-              </h4>
-              <p className="text-xs text-zinc-400 line-clamp-2 mt-1 leading-relaxed">
-                {report.witnessSummary}
-              </p>
-
-              <div className="mt-3 text-[11px] text-zinc-500 flex flex-col gap-1 border-t border-zinc-800/80 pt-2">
-                <span className="flex items-center gap-1.5">
-                  <AlertTriangle className="w-3 h-3 text-amber-500/70 shrink-0" />
-                  <strong>Uncertainty noted by author:</strong> {report.uncertainties}
-                </span>
-                <div className="flex items-center justify-between text-zinc-400 pt-0.5">
-                  <span>
-                    Location: <strong className="text-zinc-300">{report.generalLocation}</strong> · By{' '}
-                    <span className="font-mono text-zinc-300">{report.authorPseudonym}</span>
-                  </span>
-                  <span className="text-indigo-400 flex items-center gap-1 font-mono group-hover:translate-x-0.5 transition-transform">
-                    Inspect Deposition Matrix <ArrowRight className="w-3 h-3" />
-                  </span>
+                <div className="rounded-xl border border-rose-500/20 bg-zinc-950/60 p-4">
+                  <div className="flex items-center gap-4">
+                    <ScoreRing score={score.score} />
+                    <div>
+                      <p className="text-xs font-semibold text-rose-300">{score.grade}</p>
+                      <p className="mt-1 text-xs leading-relaxed text-zinc-500">Needs primary documentation before the promise is treated as fact.</p>
+                    </div>
+                  </div>
+                  <p className="mt-3 border-t border-zinc-800 pt-3 font-mono text-[10px] text-zinc-500">⚡ SNAPDRAGON HEXAGON NPU · 14.2MS · LOCAL VERIFIED</p>
                 </div>
               </div>
+              <Link href={`/article/${featured.id}`} className="mt-6 inline-flex items-center gap-2 rounded-lg bg-zinc-100 px-4 py-2.5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-white">
+                Open the evidence breakdown <ArrowRight className="h-4 w-4" />
+              </Link>
+              <div className="mt-6 flex flex-wrap gap-2 border-t border-zinc-800/80 pt-4">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1 font-mono text-[10px] text-indigo-300"><FileText className="h-3.5 w-3.5" />{receipts} Gazette PDF attached</span>
+                <span className="rounded-full border border-zinc-700 bg-zinc-900 px-2.5 py-1 font-mono text-[10px] text-zinc-500">0 lab baseline records found</span>
+              </div>
+            </>
+          )}
+        </div>
+      </section>
+
+      <AiShowdownWidget />
+
+      <section className="space-y-4">
+        <div className="flex items-end justify-between border-b border-zinc-800 pb-3">
+          <div><p className="font-mono text-[10px] uppercase tracking-[0.2em] text-indigo-400">Local signal</p><h2 className="mt-1 text-xl font-semibold text-zinc-100">Other stories worth checking</h2></div>
+          <Link href="/explore" className="text-xs text-zinc-500 hover:text-zinc-200">Explore all →</Link>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          {articles.slice(1).map((article) => (
+            <Link key={article.id} href={`/article/${article.id}`} className="group rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 transition-colors hover:border-indigo-500/40">
+              <div className="flex items-center justify-between gap-2"><Badge variant="accent">{article.category}</Badge><span className="font-mono text-[10px] text-zinc-500">{article.location?.area ?? 'Local'}</span></div>
+              <h3 className="mt-3 text-base font-semibold leading-snug text-zinc-200 group-hover:text-indigo-300">{article.title}</h3>
+              <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-zinc-500">{article.summary}</p>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* Questions People Are Asking */}
-      <section>
-        <SectionHeader
-          title="Questions People Are Asking"
-          subtitle="Evidence examination questions raised by the community"
-          badgeText="Evidence Lens"
-        />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {questions.map((q) => (
-            <div
-              key={q.id}
-              className="p-3.5 rounded-lg bg-zinc-900/60 border border-zinc-800 flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center gap-1.5 text-xs text-indigo-400 mb-1.5">
-                  <HelpCircle className="w-3.5 h-3.5" />
-                  <span className="font-mono text-[11px]">Regarding reported claim:</span>
-                </div>
-                <p className="text-xs italic text-zinc-400 mb-2 border-l-2 border-zinc-700 pl-2">
-                  &ldquo;{q.targetClaim}&rdquo;
-                </p>
-                <p className="text-sm font-medium text-zinc-200 leading-snug">
-                  {q.questionText}
-                </p>
-              </div>
+      <section className="space-y-4">
+        <div><p className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-400">On the ground</p><h2 className="mt-1 text-xl font-semibold text-zinc-100">What neighbours saw</h2></div>
+        <div className="space-y-3">
+          {reports.map((report) => (
+            <Link key={report.id} href={`/incident/${report.id}`} className="group block rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 transition-colors hover:border-amber-500/40">
+              <div className="flex flex-wrap items-center justify-between gap-2"><span className="inline-flex items-center gap-1.5 text-xs text-emerald-300"><Users className="h-3.5 w-3.5" /> {report.witnesses?.length ?? 1} local account{(report.witnesses?.length ?? 1) === 1 ? '' : 's'}</span><span className="font-mono text-[10px] text-zinc-500">{report.timestamp}</span></div>
+              <h3 className="mt-2 text-sm font-semibold text-zinc-200 group-hover:text-amber-300">{report.title}</h3>
+              <p className="mt-1 text-xs leading-relaxed text-zinc-500">{report.witnessSummary}</p>
+              <p className="mt-3 flex items-start gap-1.5 border-t border-zinc-800 pt-2 text-[11px] text-zinc-600"><ShieldAlert className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" /> {report.uncertainties}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
 
-              <div className="mt-3 pt-2 border-t border-zinc-800 flex items-center justify-between text-[11px] text-zinc-500">
-                <span>Source: {q.contextSource}</span>
-                <span className="text-indigo-400 hover:underline cursor-pointer">
-                  {q.communityAnswersCount} community perspectives →
-                </span>
-              </div>
+      <section className="space-y-4">
+        <div><p className="font-mono text-[10px] uppercase tracking-[0.2em] text-indigo-400">Community lens</p><h2 className="mt-1 text-xl font-semibold text-zinc-100">Questions people are asking</h2></div>
+        <div className="grid gap-3 md:grid-cols-2">
+          {questions.map((question) => (
+            <div key={question.id} className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+              <div className="flex items-center gap-2 text-xs text-indigo-300"><HelpCircle className="h-3.5 w-3.5" /> Evidence question</div>
+              <p className="mt-3 border-l-2 border-zinc-700 pl-3 text-xs italic leading-relaxed text-zinc-500">&ldquo;{question.targetClaim}&rdquo;</p>
+              <p className="mt-3 text-sm font-medium leading-snug text-zinc-200">{question.questionText}</p>
+              <p className="mt-3 font-mono text-[10px] text-zinc-600">{question.communityAnswersCount} community perspectives</p>
             </div>
           ))}
         </div>
