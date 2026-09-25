@@ -21,6 +21,7 @@ export type NewsCategory =
   | 'Environment'
   | 'Science'
   | 'Sports'
+  | 'Sports & Media Ethics'
   | 'Culture'
   | 'Public Safety'
   | 'Health'
@@ -161,6 +162,8 @@ export interface Article {
   timeline?: TimelineMilestone[];
   comparison?: StoryComparison;
   corrections?: ArticleCorrection[];
+  imageUrl?: string;
+  imageCaption?: string;
 }
 
 export interface WitnessAccount {

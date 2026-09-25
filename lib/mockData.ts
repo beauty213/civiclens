@@ -1,5 +1,6 @@
 // lib/mockData.ts
 import { Article, CitizenReport, CivicQuestion } from '@/types';
+import { SPORTS_CONTRAST_ARTICLE } from '@/lib/supabase/fixtures';
 
 export const INITIAL_LOCATION = {
   area: 'Gachibowli',
@@ -83,6 +84,7 @@ export const MOCK_CITIZEN_REPORTS: CitizenReport[] = [
 ];
 
 export const MOCK_ARTICLES: Article[] = [
+  SPORTS_CONTRAST_ARTICLE,
   {
     id: 'art-001',
     title: 'Bio-Divergent Lake Restoration Project Announced Across West Hyderabad',
