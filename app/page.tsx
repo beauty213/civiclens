@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, CheckCircle2, FileText, HelpCircle, ShieldAlert, Users } from 'lucide-react';
 import { AiShowdownWidget } from '@/components/home/AiShowdownWidget';
-import { Badge } from '@/components/ui/Badge';
+import { StoryPulseFilters } from '@/components/home/StoryPulseFilters';
 import { fetchArticles, fetchCitizenReports, fetchCivicQuestions } from '@/lib/dataService';
 import { computeArticleScore } from '@/lib/scoring/engine';
 
@@ -86,18 +86,10 @@ export default async function HomePage() {
 
       <section className="space-y-4">
         <div className="flex items-end justify-between border-b border-zinc-800 pb-3">
-          <div><p className="font-mono text-[10px] uppercase tracking-[0.2em] text-indigo-400">Local signal</p><h2 className="mt-1 text-xl font-semibold text-zinc-100">Other stories worth checking</h2></div>
+          <div><p className="font-mono text-[10px] uppercase tracking-[0.2em] text-indigo-400">Local signal</p><h2 className="mt-1 text-xl font-semibold text-zinc-100">Rumors, records, and reality checks</h2></div>
           <Link href="/explore" className="text-xs text-zinc-500 hover:text-zinc-200">Explore all →</Link>
         </div>
-        <div className="grid gap-3 md:grid-cols-2">
-          {articles.slice(1).map((article) => (
-            <Link key={article.id} href={`/article/${article.id}`} className="group rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 transition-colors hover:border-indigo-500/40">
-              <div className="flex items-center justify-between gap-2"><Badge variant="accent">{article.category}</Badge><span className="font-mono text-[10px] text-zinc-500">{article.location?.area ?? 'Local'}</span></div>
-              <h3 className="mt-3 text-base font-semibold leading-snug text-zinc-200 group-hover:text-indigo-300">{article.title}</h3>
-              <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-zinc-500">{article.summary}</p>
-            </Link>
-          ))}
-        </div>
+        <StoryPulseFilters articles={articles} />
       </section>
 
       <section className="space-y-4">
