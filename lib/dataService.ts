@@ -1,5 +1,5 @@
 // lib/dataService.ts
-import { Article, CitizenReport, CivicQuestion, ClaimComment } from '@/types';
+import { Article, CitizenReport, CivicQuestion, EvidenceItem } from '@/types';
 import { MOCK_ARTICLES, MOCK_CITIZEN_REPORTS, MOCK_QUESTIONS } from './mockData';
 import { supabase, isSupabaseConfigured } from './supabase/client';
 
@@ -31,6 +31,17 @@ export async function fetchArticleById(id: string): Promise<Article | undefined>
   return articles.find((a) => a.id === id) || localArticles[0];
 }
 
+export function attachEvidenceToClaim(claimId: string, evidence: EvidenceItem): boolean {
+  for (const article of localArticles) {
+    const claim = article.claims.find((c) => c.id === claimId);
+    if (claim) {
+      claim.evidence = [evidence, ...claim.evidence];
+      return true;
+    }
+  }
+  return false;
+}
+
 // --- Citizen Reports & Incident Room ---
 
 export async function fetchCitizenReports(): Promise<CitizenReport[]> {
@@ -51,7 +62,6 @@ export async function fetchCitizenReports(): Promise<CitizenReport[]> {
 }
 
 export async function submitCitizenIncident(report: CitizenReport): Promise<boolean> {
-  // Always update in-memory session cache immediately
   localReports = [report, ...localReports];
 
   if (isSupabaseConfigured && supabase) {

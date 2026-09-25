@@ -1,152 +1,192 @@
-// app/article/[id]/page.tsx
 'use client';
 
 import React, { useState } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
 import { MOCK_ARTICLES } from '@/lib/mockData';
-import { ClaimLensView } from '@/components/claims/ClaimLensView';
 import { Badge } from '@/components/ui/Badge';
-import { 
-  ArrowLeft, 
-  ShieldCheck, 
-  BookOpen, 
-  MapPin, 
-  Calendar, 
-  Share2, 
-  AlertCircle 
-} from 'lucide-react';
+import { ClaimLensView } from '@/components/claims/ClaimLensView';
+import { DevelopingStoryTimeline } from '@/components/timeline/DevelopingStoryTimeline';
+import { SourceComparisonView } from '@/components/comparison/SourceComparisonView';
+import { CorrectionsHistoryModal } from '@/components/claims/CorrectionsHistoryModal';
+import { AiExtractModal } from '@/components/claims/AiExtractModal';
+import { ArrowLeft, ShieldCheck, Share2, Bookmark, MapPin, GitBranch, Split, History, Sparkles } from 'lucide-react';
 
-export default function ArticlePage() {
+type ArticleViewTab = 'article' | 'claimlens' | 'timeline' | 'comparison';
+
+export default function ArticleDetailPage() {
   const params = useParams();
-  const searchParams = useSearchParams();
-  const articleId = params.id as string;
-  
-  // Look up mock article
+  const router = useRouter();
+  const articleId = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params.id[0] : 'art-001';
+
   const article = MOCK_ARTICLES.find((a) => a.id === articleId) || MOCK_ARTICLES[0];
-  const initialView = searchParams.get('view') === 'claims' ? 'claims' : 'article';
-  const [activeTab, setActiveTab] = useState<'article' | 'claims'>(initialView);
+  const [activeTab, setActiveTab] = useState<ArticleViewTab>('article');
+  const [isCorrectionsOpen, setIsCorrectionsOpen] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+
+  // Fallback to bodyParagraphs, content, or summary
+  const paragraphs: string[] = article.bodyParagraphs || article.content || [article.summary];
 
   return (
-    <div className="space-y-6">
-      {/* Back button & top meta */}
-      <div className="flex items-center justify-between">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          Back to Feed
-        </Link>
+    <div className="space-y-6 max-w-3xl mx-auto pb-12">
+      {/* Top Bar Navigation */}
+      <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
         <button
-          onClick={() => {
-            if (navigator.clipboard) {
-              navigator.clipboard.writeText(window.location.href);
-              alert('Article link copied to clipboard.');
-            }
-          }}
-          className="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-200"
+          onClick={() => router.back()}
+          className="flex items-center gap-1.5 text-xs font-mono text-zinc-400 hover:text-zinc-200 transition-colors"
         >
-          <Share2 className="w-3.5 h-3.5" />
-          Share
+          <ArrowLeft className="w-4 h-4" />
+          Back to Feed
         </button>
+        <div className="flex items-center gap-2">
+          {article.corrections && article.corrections.length > 0 && (
+            <button
+              onClick={() => setIsCorrectionsOpen(true)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded border border-amber-800 bg-amber-950/40 text-amber-300 text-xs font-mono hover:bg-amber-900/50 transition-colors"
+            >
+              <History className="w-3.5 h-3.5" />
+              Corrections ({article.corrections.length})
+            </button>
+          )}
+          <button
+            onClick={() => setIsAiModalOpen(true)}
+            className="flex items-center gap-1 px-2.5 py-1 rounded border border-indigo-700 bg-indigo-950/60 text-indigo-300 text-xs font-mono hover:bg-indigo-900 transition-colors"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            AI Claim Engine
+          </button>
+          <button className="p-1.5 rounded border border-zinc-800 text-zinc-400 hover:text-zinc-200">
+            <Share2 className="w-4 h-4" />
+          </button>
+          <button className="p-1.5 rounded border border-zinc-800 text-zinc-400 hover:text-zinc-200">
+            <Bookmark className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      {/* Article Header */}
-      <header className="space-y-3">
-        <div className="flex items-center gap-2 flex-wrap">
+      {/* Article Header Metadata */}
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
           <Badge variant="accent">{article.category}</Badge>
-          <span className="flex items-center gap-1 text-xs text-zinc-400 font-mono">
-            <MapPin className="w-3 h-3 text-zinc-500" />
+          <span className="flex items-center gap-1 text-zinc-400 font-mono">
+            <MapPin className="w-3.5 h-3.5 text-indigo-400" />
             {article.location.area}, {article.location.district}
           </span>
-          <span className="flex items-center gap-1 text-xs text-zinc-500 font-mono">
-            <Calendar className="w-3 h-3 text-zinc-500" />
-            {new Date(article.publishedAt).toLocaleDateString()}
+          <span className="text-zinc-600">·</span>
+          <span className="text-zinc-500 font-mono">
+            {new Date(article.publishedAt).toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}
           </span>
         </div>
 
-        <h1 className="text-xl md:text-2xl font-semibold text-zinc-100 leading-tight">
+        <h1 className="text-xl sm:text-2xl font-bold text-zinc-100 tracking-tight leading-snug">
           {article.title}
         </h1>
 
-        <div className="flex items-center justify-between text-xs text-zinc-400 border-b border-zinc-800 pb-3">
+        <div className="flex items-center justify-between text-xs text-zinc-400 border-y border-zinc-800 py-2.5">
           <span>
-            Reported by <strong className="text-zinc-200">{article.author}</strong> for{' '}
-            <span className="text-indigo-300">{article.sourceName}</span>
+            By <strong className="text-zinc-200">{article.author}</strong> · {article.sourceName}
+          </span>
+          <span className="font-mono text-indigo-400">
+            {article.claims.length} Claims Indexed
           </span>
         </div>
-      </header>
+      </div>
 
-      {/* View Switcher: Read Story vs Examine with Claim Lens */}
-      <div className="flex rounded-lg bg-zinc-900 p-1 border border-zinc-800">
+      {/* Analytical Tab Switcher */}
+      <div className="flex items-center gap-1.5 bg-zinc-900 p-1 rounded-xl border border-zinc-800 text-xs overflow-x-auto">
         <button
           onClick={() => setActiveTab('article')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-medium rounded transition-all ${
+          className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors whitespace-nowrap text-center ${
             activeTab === 'article'
-              ? 'bg-zinc-800 text-zinc-100 shadow-sm'
+              ? 'bg-zinc-800 text-zinc-100 shadow'
               : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          <BookOpen className="w-3.5 h-3.5" />
-          Read Full Story
+          Article Body
         </button>
+
         <button
-          onClick={() => setActiveTab('claims')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-medium rounded transition-all ${
-            activeTab === 'claims'
-              ? 'bg-indigo-600 text-white shadow-sm'
+          onClick={() => setActiveTab('claimlens')}
+          className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap ${
+            activeTab === 'claimlens'
+              ? 'bg-indigo-600 text-white shadow font-semibold'
               : 'text-indigo-400 hover:text-indigo-300'
           }`}
         >
           <ShieldCheck className="w-3.5 h-3.5" />
-          Examine with CivicLens ({article.claims?.length || article.claimsCount} Claims)
+          Claim Lens ({article.claims.length})
+        </button>
+
+        <button
+          onClick={() => setActiveTab('timeline')}
+          className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap ${
+            activeTab === 'timeline'
+              ? 'bg-zinc-800 text-zinc-100 shadow'
+              : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          <GitBranch className="w-3.5 h-3.5 text-indigo-400" />
+          Timeline
+        </button>
+
+        <button
+          onClick={() => setActiveTab('comparison')}
+          className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap ${
+            activeTab === 'comparison'
+              ? 'bg-zinc-800 text-zinc-100 shadow'
+              : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          <Split className="w-3.5 h-3.5 text-indigo-400" />
+          Compare Sources
         </button>
       </div>
 
-      {/* Tab 1: Full Article Content */}
+      {/* Main Tab Content */}
       {activeTab === 'article' && (
-        <div className="space-y-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 leading-relaxed space-y-3 text-zinc-300 text-sm">
-            {article.content ? (
-              article.content.map((paragraph, index) => <p key={index}>{paragraph}</p>)
-            ) : (
-              <p>{article.summary}</p>
-            )}
-          </div>
-
-          {/* Prompt to open Claim Lens */}
-          <div className="p-4 rounded-lg bg-indigo-950/30 border border-indigo-900/50 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="space-y-1 text-center sm:text-left">
-              <p className="text-xs font-semibold text-indigo-200">
-                Want to examine the assertions made in this article?
-              </p>
-              <p className="text-xs text-zinc-400">
-                Review verified sources, conflicting statements, and identified data gaps.
-              </p>
-            </div>
-            <button
-              onClick={() => setActiveTab('claims')}
-              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs font-medium transition-colors shrink-0"
-            >
-              Open Claim Lens
-            </button>
-          </div>
-        </div>
+        <article className="space-y-4 text-sm text-zinc-300 leading-relaxed font-normal">
+          {paragraphs.map((para: string, idx: number) => (
+            <p key={idx} className="text-zinc-300">
+              {para}
+            </p>
+          ))}
+        </article>
       )}
 
-      {/* Tab 2: Claim Lens Engine */}
-      {activeTab === 'claims' && (
-        <div>
-          {article.claims && article.claims.length > 0 ? (
-            <ClaimLensView claims={article.claims} />
-          ) : (
-            <div className="p-6 text-center border border-zinc-800 rounded-lg bg-zinc-900 text-xs text-zinc-400">
-              No claims have been parsed for this publication yet.
-            </div>
-          )}
-        </div>
+      {activeTab === 'claimlens' && (
+        <section className="space-y-4">
+          <ClaimLensView claims={article.claims} />
+        </section>
       )}
+
+      {activeTab === 'timeline' && (
+        <section className="space-y-4">
+          <DevelopingStoryTimeline timeline={article.timeline} />
+        </section>
+      )}
+
+      {activeTab === 'comparison' && (
+        <section className="space-y-4">
+          <SourceComparisonView comparison={article.comparison} />
+        </section>
+      )}
+
+      <CorrectionsHistoryModal
+        isOpen={isCorrectionsOpen}
+        onClose={() => setIsCorrectionsOpen(false)}
+        corrections={article.corrections}
+      />
+
+      <AiExtractModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        articleId={article.id}
+        articleTitle={article.title}
+        articleText={paragraphs.join('\n')}
+      />
     </div>
   );
 }

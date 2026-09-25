@@ -1,17 +1,16 @@
-// app/incident/[id]/page.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { MOCK_CITIZEN_REPORTS } from '@/lib/mockData';
 import { MultipleWitnessComparison } from '@/components/incident/MultipleWitnessComparison';
 import { Badge } from '@/components/ui/Badge';
-import { ArrowLeft, MapPin, Clock, Eye, AlertTriangle, Users } from 'lucide-react';
+import { ArrowLeft, MapPin, AlertTriangle, Users } from 'lucide-react';
 
 export default function IncidentDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const incidentId = params.id as string;
+  const incidentId = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params.id[0] : 'rep-101';
 
   const report = MOCK_CITIZEN_REPORTS.find((r) => r.id === incidentId) || MOCK_CITIZEN_REPORTS[0];
 

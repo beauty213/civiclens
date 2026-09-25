@@ -2,6 +2,17 @@
 
 export type GeographicScope = 'Area' | 'District' | 'State' | 'Country' | 'World';
 
+export type PublishIntent =
+  | 'witnessed'
+  | 'saw'
+  | 'ask'
+  | 'article'
+  | 'opinion'
+  | 'write_article'
+  | 'witnessed_something'
+  | 'ask_community'
+  | 'share_opinion';
+
 export type NewsCategory =
   | 'Politics'
   | 'Education'
@@ -136,7 +147,8 @@ export interface Article {
   id: string;
   title: string;
   summary: string;
-  bodyParagraphs: string[];
+  bodyParagraphs?: string[];
+  content?: string[];
   sourceName: string;
   author: string;
   publishedAt: string;
