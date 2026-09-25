@@ -13,14 +13,14 @@ export function TopNavbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full bg-zinc-950/90 backdrop-blur border-b border-zinc-800 px-4 py-3">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+      <header className="sticky top-0 z-40 w-full border-b border-slate-800/70 bg-[#0B0F17]/85 px-4 py-4 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between">
           {/* CivicLens Brand Identity */}
           <Link href="/" className="flex items-center gap-2">
-            <span className="font-bold tracking-tight text-lg text-zinc-100">
-              Civic<span className="text-indigo-400">Lens</span>
+            <span className="text-lg font-semibold tracking-tight text-slate-100">
+              Civic<span className="text-emerald-400">Lens</span>
             </span>
-            <span className="hidden sm:inline text-xs text-zinc-500 border-l border-zinc-800 pl-2">
+            <span className="hidden border-l border-slate-800 pl-2 text-xs text-slate-500 sm:inline">
               Speak. Question. Explore the evidence.
             </span>
           </Link>
@@ -30,7 +30,7 @@ export function TopNavbar() {
             {/* Demo Mode Button */}
             <Link
               href="/demo"
-              className="flex items-center gap-1 bg-indigo-950/70 border border-indigo-800/80 hover:border-indigo-600 px-2 py-1 rounded text-xs font-mono text-indigo-300 transition-colors"
+              className="flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-mono text-emerald-300 transition-colors hover:border-emerald-500/40"
               title="Open 18-Step Specification Demo Walkthrough"
             >
               <PlayCircle className="w-3.5 h-3.5" />
@@ -40,17 +40,17 @@ export function TopNavbar() {
             {/* Geographic Scope Selector */}
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 px-2.5 py-1.5 rounded text-xs text-zinc-200 transition-colors"
+              className="flex items-center gap-1.5 rounded-full border border-slate-800 bg-slate-900/60 px-3 py-1.5 text-xs text-slate-200 transition-colors hover:border-slate-700"
             >
-              <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+              <MapPin className="h-3.5 w-3.5 text-emerald-400" />
               <span className="font-medium">{getActiveScopeLabel()}</span>
-              <span className="text-zinc-500 font-mono text-[10px]">({scope})</span>
-              <ChevronDown className="w-3 h-3 text-zinc-500" />
+              <span className="font-mono text-[10px] text-slate-500">({scope})</span>
+              <ChevronDown className="h-3 w-3 text-slate-500" />
             </button>
 
             <button
               aria-label="Notifications"
-              className="p-1.5 text-zinc-400 hover:text-zinc-200 rounded border border-zinc-800 bg-zinc-900"
+              className="rounded-full border border-slate-800 bg-slate-900/60 p-2 text-slate-400 hover:text-emerald-300"
             >
               <Bell className="w-4 h-4" />
             </button>

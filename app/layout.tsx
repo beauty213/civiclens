@@ -17,10 +17,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col font-sans antialiased pb-20">
+      <body className="min-h-screen bg-[#0B0F17] font-sans text-slate-100 antialiased pb-20">
         <LocationProvider>
           <TopNavbar />
-          <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-5">{children}</main>
+          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">{children}</main>
           <BottomNav />
         </LocationProvider>
       </body>

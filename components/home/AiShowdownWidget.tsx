@@ -23,7 +23,7 @@ export function AiShowdownWidget() {
             </p>
           </div>
           <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 font-mono text-[10px] text-emerald-300">
-            LOCAL-FIRST VERIFICATION
+          LOCAL-FIRST · RECEIPTS REQUIRED
           </span>
         </div>
         <div className="mt-5 grid grid-cols-2 gap-1 rounded-lg border border-zinc-800 bg-zinc-950 p-1" role="tablist" aria-label="AI comparison">
@@ -59,9 +59,9 @@ export function AiShowdownWidget() {
             </p>
           </div>
           <div>
-            <p className="mb-3 text-xs font-medium text-zinc-300">What is missing?</p>
+            <p className="mb-3 text-xs font-medium text-zinc-300">A confident tone is not a receipt.</p>
             <ul className="space-y-2">
-              {['Vague hedging', 'Zero citations', 'No hyperlocal municipal access', 'Cloud data exposure'].map((flaw) => (
+              {['⚠️ Vague hallucination', '⚠️ Zero primary documents', '⚠️ Hyperlocal blindspot', '⚠️ Cloud privacy exposure'].map((flaw) => (
                 <li key={flaw} className="flex items-center gap-2 rounded-lg border border-rose-500/20 bg-rose-500/5 px-3 py-2 text-xs text-rose-300">
                   <ShieldAlert className="h-3.5 w-3.5 shrink-0" /> {flaw}
                 </li>
@@ -88,7 +88,7 @@ export function AiShowdownWidget() {
             </div>
           </div>
           <div>
-            <p className="mb-3 text-xs font-medium text-zinc-300">Why CivicLens is different</p>
+            <p className="mb-3 text-xs font-medium text-zinc-300">A claim is only useful when someone can inspect the trail.</p>
             <ul className="space-y-2">
               {( [
                 [FileCheck2, 'Primary PDF attached'],

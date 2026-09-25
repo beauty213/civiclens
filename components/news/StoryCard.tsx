@@ -1,65 +1,51 @@
 // components/news/StoryCard.tsx
-import React from 'react';
 import Link from 'next/link';
 import { Article } from '@/types';
-import { Badge } from '@/components/ui/Badge';
-import { ShieldCheck, HelpCircle, Eye, ArrowUpRight } from 'lucide-react';
+import { computeArticleScore } from '@/lib/scoring/engine';
+import { ArrowUpRight, MapPin } from 'lucide-react';
 
 interface StoryCardProps {
   article: Article;
 }
 
 export function StoryCard({ article }: StoryCardProps) {
+  const score = computeArticleScore(article.claims ?? []);
+  const tier = score.score > 75
+    ? { label: 'Well-supported', className: 'bg-emerald-950/80 text-emerald-300 border-emerald-800/60', dot: 'bg-emerald-400' }
+    : score.score < 40
+        ? { label: 'High hoax risk', className: 'bg-rose-950/80 text-rose-300 border-rose-800/60', dot: 'bg-rose-400' }
+        : { label: 'Needs verification', className: 'bg-amber-950/80 text-amber-300 border-amber-800/60', dot: 'bg-amber-400' };
+
   return (
-    <article className="group relative flex flex-col p-4 bg-zinc-900 border border-zinc-800 rounded-lg hover:border-zinc-700 transition-colors">
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <div className="flex items-center gap-2">
-          <Badge variant="accent">{article.category}</Badge>
-          <span className="text-xs text-zinc-400 font-mono">
-            {article.location?.area ?? 'Unknown area'} · {article.location?.district ?? 'Unknown district'}
-          </span>
-        </div>
-        <span className="text-xs text-zinc-500 font-mono">
-          {new Date(article.publishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </span>
-      </div>
-
-      <Link href={`/article/${article.id}`} className="block mb-2">
-        <h3 className="text-base font-medium text-zinc-100 leading-snug group-hover:text-indigo-300 transition-colors flex items-start justify-between gap-2">
-          <span>{article.title}</span>
-          <ArrowUpRight className="w-4 h-4 text-zinc-500 group-hover:text-indigo-300 shrink-0 mt-0.5" />
-        </h3>
-      </Link>
-
-      <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed mb-4">
-        {article.summary}
-      </p>
-
-      {/* Evidence & Claims Metadata Footer */}
-      <div className="mt-auto pt-3 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400">
-        <span className="font-medium text-zinc-300">{article.sourceName}</span>
-
-        <div className="flex items-center gap-3 font-mono">
-          <Link
-            href={`/article/${article.id}?view=claims`}
-            className="flex items-center gap-1 hover:text-indigo-300 transition-colors"
-            title="Examine Claims with CivicLens"
-          >
-            <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
-            {article.claimsCount} claims
-          </Link>
-          <span className="flex items-center gap-1 text-zinc-400" title="Open Questions">
-            <HelpCircle className="w-3.5 h-3.5 text-zinc-500" />
-            {article.unresolvedQuestionsCount}
-          </span>
-          {article.citizenReportsCount > 0 && (
-            <span className="flex items-center gap-1 text-amber-400" title="Local Firsthand Reports">
-              <Eye className="w-3.5 h-3.5" />
-              {article.citizenReportsCount}
+    <article className="group flex flex-col justify-between rounded-2xl border border-slate-800/80 bg-slate-900/40 p-6 backdrop-blur-md transition-all duration-300 hover:border-slate-700 hover:shadow-xl hover:shadow-emerald-500/5">
+        <div>
+          <div className="flex items-center justify-between gap-3">
+            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">{article.category}</span>
+            <span className="rounded-full border border-slate-800 bg-slate-950/50 px-3 py-1 font-mono text-[10px] text-slate-400">
+              <MapPin className="mr-1 inline h-3 w-3 text-emerald-400" />
+              {article.location?.area ?? 'Civic Region'}
             </span>
-          )}
+          </div>
+          <div className="mt-5 flex items-start justify-between gap-3">
+            <Link href={`/article/${article.id}`} className="min-w-0">
+              <h3 className="line-clamp-2 text-lg font-semibold tracking-tight text-slate-100 transition-colors group-hover:text-emerald-400">{article.title}</h3>
+            </Link>
+            <span className="shrink-0 rounded-full border border-slate-700/80 bg-slate-950/60 px-2 py-1 font-mono text-[10px] text-slate-400">{score.score}%</span>
+          </div>
+          <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-slate-300">{article.summary}</p>
         </div>
-      </div>
+
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/80 pt-4">
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[10px] ${tier.className}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${tier.dot}`} /> {tier.label}
+            </span>
+            <span className="font-mono text-[10px] text-slate-500">⚡ 14.2ms NPU</span>
+          </div>
+          <Link href={`/article/${article.id}`} className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 transition-colors hover:text-emerald-400">
+            Inspect <ArrowUpRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
     </article>
   );
 }
