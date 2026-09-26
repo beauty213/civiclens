@@ -7,14 +7,12 @@ import {
   ExternalLink,
   FileText,
   MapPin,
-  Plus,
   ShieldCheck,
 } from 'lucide-react';
 import { MOCK_ARTICLES } from '@/lib/mockData';
 import { fetchArticleById } from '@/lib/dataService';
 import { computeArticleScore } from '@/lib/scoring/engine';
 import { Article, Claim, EvidenceItem, EvidenceStatus } from '@/types';
-import { UploadEvidenceModal } from '@/components/evidence/UploadEvidenceModal';
 
 const STATUS_STYLES: Record<EvidenceStatus, string> = {
   'Well-supported': 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300',
@@ -75,6 +73,9 @@ function EvidenceCard({ evidence }: { evidence: EvidenceItem }) {
               </a>
             )}
           </div>
+          {evidence.isDemo && (
+            <span className="mt-1 inline-block font-mono text-[10px] uppercase tracking-wider text-amber-400">Demo record · not verified</span>
+          )}
           <p className="mt-1 text-xs leading-relaxed text-zinc-400">{evidence.description}</p>
           <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 font-mono text-[10px] text-zinc-500">
             <span>{evidence.type}</span>
@@ -84,6 +85,7 @@ function EvidenceCard({ evidence }: { evidence: EvidenceItem }) {
           <p className="mt-2 border-l border-indigo-500/40 pl-2 text-[11px] italic text-zinc-500">
             {evidence.provenanceNote}
           </p>
+          {!evidence.sourceUrl && <p className="mt-2 text-[10px] text-amber-400">No public source link is available for this record.</p>}
         </div>
       </div>
     </li>
@@ -94,12 +96,10 @@ function ClaimInspector({
   claims,
   selectedClaimId,
   onSelect,
-  onUpload,
 }: {
   claims: Claim[];
   selectedClaimId: string | null;
   onSelect: (claimId: string) => void;
-  onUpload: (claim: Claim) => void;
 }) {
   const selectedClaim = claims.find((claim) => claim.id === selectedClaimId) ?? claims[0];
   const score = computeArticleScore(claims);
@@ -108,16 +108,20 @@ function ClaimInspector({
     <aside className="flex min-h-0 flex-col rounded-xl border border-zinc-800 bg-zinc-900/70">
       <div className="border-b border-zinc-800 p-4">
         <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-indigo-400">Forensic assessment</p>
-        <div className="mt-3 flex items-center gap-4">
-          <ScoreGauge score={score.score} />
-          <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-zinc-100">{score.grade}</h2>
-            <p className="mt-1 text-xs leading-relaxed text-zinc-400">{score.recommendation}</p>
-            <p className="mt-2 font-mono text-[10px] text-zinc-500">
-              {score.verifiedCount} grounded · {score.unverifiedCount} open · {score.contradictedCount} disputed
-            </p>
+        {claims.length > 0 ? (
+          <div className="mt-3 flex items-center gap-4">
+            <ScoreGauge score={score.score} />
+            <div className="min-w-0">
+              <h2 className="text-sm font-semibold text-zinc-100">{score.grade}</h2>
+              <p className="mt-1 text-xs leading-relaxed text-zinc-400">{score.recommendation}</p>
+              <p className="mt-2 font-mono text-[10px] text-zinc-500">
+                {score.verifiedCount} grounded · {score.unverifiedCount} open · {score.contradictedCount} disputed
+              </p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <p className="mt-3 rounded-lg border border-dashed border-zinc-700 p-3 text-xs text-zinc-400">No factual claims have been assessed for this story yet.</p>
+        )}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
@@ -148,16 +152,7 @@ function ClaimInspector({
                   <div className="border-t border-zinc-800 px-3 pb-3 pt-2">
                     <p className="text-xs leading-relaxed text-zinc-400">{claim.statusExplanation}</p>
                     <p className="mt-2 font-mono text-[10px] text-zinc-600">SOURCE: {claim.speakerOrSource}</p>
-                    <div className="mt-3 flex items-center justify-between">
-                      <span className="font-mono text-[10px] text-zinc-500">{claim.evidence.length} primary record{claim.evidence.length === 1 ? '' : 's'}</span>
-                      <button
-                        type="button"
-                        onClick={() => onUpload(claim)}
-                        className="inline-flex items-center gap-1 rounded border border-indigo-500/40 px-2 py-1 text-[11px] text-indigo-300 hover:bg-indigo-500/10"
-                      >
-                        <Plus className="h-3 w-3" /> Add evidence
-                      </button>
-                    </div>
+                    <p className="mt-3 font-mono text-[10px] text-zinc-500">{claim.evidence.length} source record{claim.evidence.length === 1 ? '' : 's'}</p>
                   </div>
                 )}
               </div>
@@ -181,6 +176,9 @@ function ClaimInspector({
               No primary records attached to this claim yet.
             </div>
           )}
+          <p className="border-t border-zinc-800 px-3 py-2 text-[10px] leading-relaxed text-zinc-600">
+            Assessments use the source-record details stored here. Open each linked source to review the original document.
+          </p>
         </div>
       )}
     </aside>
@@ -246,11 +244,9 @@ export default function ArticleDetailPage() {
   const articleId = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params.id[0] : 'art-001';
   const [loadedArticle, setLoadedArticle] = useState<Article | undefined>(() => MOCK_ARTICLES.find((candidate) => candidate.id === articleId));
   const [loadedArticleId, setLoadedArticleId] = useState<string | null>(() => MOCK_ARTICLES.some((candidate) => candidate.id === articleId) ? articleId : null);
-  const [claimOverrides, setClaimOverrides] = useState<Record<string, Claim[]>>({});
   const [selectedClaimIdState, setSelectedClaimIdState] = useState<string | null>(null);
-  const [uploadClaim, setUploadClaim] = useState<Claim | null>(null);
   const article = loadedArticle?.id === articleId ? loadedArticle : undefined;
-  const claims = article ? claimOverrides[article.id] ?? article.claims ?? [] : [];
+  const claims = article?.claims ?? [];
   const selectedClaimId = claims.some((claim) => claim.id === selectedClaimIdState)
     ? selectedClaimIdState
     : claims[0]?.id ?? null;
@@ -277,19 +273,6 @@ export default function ArticleDetailPage() {
   }, [articleId]);
 
   const setSelectedClaimId = (claimId: string) => setSelectedClaimIdState(claimId);
-  const handleEvidenceAdded = (item: EvidenceItem) => {
-    if (!uploadClaim || !article) return;
-    setClaimOverrides((current) => {
-      const articleClaims = current[article.id] ?? article.claims;
-      return {
-        ...current,
-        [article.id]: articleClaims.map((claim) => (
-          claim.id === uploadClaim.id ? { ...claim, evidence: [...claim.evidence, item] } : claim
-        )),
-      };
-    });
-  };
-
   if (!article) {
     const hasLoaded = loadedArticleId === articleId;
     return (
@@ -310,11 +293,17 @@ export default function ArticleDetailPage() {
           <ArrowLeft className="h-4 w-4" /> Back to feed
         </button>
         <div className="flex items-center gap-2 font-mono text-[10px] text-zinc-500">
-          <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> LIVE EVIDENCE WORKSPACE</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> HOW WE CHECKED THIS</span>
           <span className="hidden text-zinc-700 sm:inline">/</span>
-          <span>{article.claims.length} indexed claims</span>
+          <span>{article.claims.length} claims · Optimized for Snapdragon NPU</span>
         </div>
       </header>
+
+      {article.isDemo && (
+        <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-xs text-amber-200">
+          This is a demo story with illustrative claim assessments and source records, not a live verification.
+        </p>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(360px,2fr)] lg:items-stretch">
         <main className="min-w-0 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-8">
@@ -338,19 +327,13 @@ export default function ArticleDetailPage() {
           claims={claims}
           selectedClaimId={selectedClaimId}
           onSelect={setSelectedClaimId}
-          onUpload={(claim) => { setSelectedClaimId(claim.id); setUploadClaim(claim); }}
         />
       </div>
 
-      {uploadClaim && (
-        <UploadEvidenceModal
-          isOpen
-          onClose={() => setUploadClaim(null)}
-          claimId={uploadClaim.id}
-          claimText={uploadClaim.claimText}
-          onEvidenceAdded={handleEvidenceAdded}
-        />
-      )}
+      <section className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
+        <h2 className="text-sm font-medium text-zinc-200">Community discussion</h2>
+        <p className="mt-1 text-xs text-zinc-500">Comments are coming later. For now, review the claims and open their source records.</p>
+      </section>
     </div>
   );
 }

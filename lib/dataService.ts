@@ -4,7 +4,14 @@ import { MOCK_ARTICLES, MOCK_CITIZEN_REPORTS, MOCK_QUESTIONS } from './mockData'
 import { supabase, isSupabaseConfigured } from './supabase/client';
 
 // In-memory working cache for session persistence when Supabase credentials are absent
-const localArticles: Article[] = [...MOCK_ARTICLES];
+const localArticles: Article[] = MOCK_ARTICLES.map((article) => ({
+  ...article,
+  isDemo: true,
+  claims: article.claims.map((claim) => ({
+    ...claim,
+    evidence: claim.evidence.map((evidence) => ({ ...evidence, isDemo: true })),
+  })),
+}));
 let localReports: CitizenReport[] = [...MOCK_CITIZEN_REPORTS];
 const localQuestions: CivicQuestion[] = [...MOCK_QUESTIONS];
 
@@ -74,6 +81,7 @@ function mapEvidence(row: DataRecord): EvidenceItem {
     date: asText(row.created_at ?? row.date),
     uploaderPseudonym: asText(row.uploader_pseudonym ?? row.uploaderPseudonym, 'Civic contributor'),
     provenanceNote: asText(row.provenance_note ?? row.provenanceNote),
+    isDemo: row.is_demo === true,
   };
 }
 
@@ -121,6 +129,8 @@ function mapArticle(value: unknown): Article {
     claims: asRecordList(row.claims).map(mapClaim),
     imageUrl: asText(row.image_url ?? row.imageUrl) || undefined,
     imageCaption: asText(row.image_caption ?? row.imageCaption) || undefined,
+    sourceUrl: asText(row.source_url ?? row.sourceUrl) || undefined,
+    isDemo: row.is_demo === true,
   };
 }
 
@@ -131,7 +141,12 @@ export async function fetchArticles(): Promise<Article[]> {
     try {
       const { data, error } = await supabase
         .from('articles')
-        .select('*, claims(*, evidence_items(*)), locations(*)');
+        .select('*, claims(*, evidence_items(*)), locations(*)')
+        .eq('is_demo', false)
+        .order('published_at', { ascending: false });
+      if (error) {
+        console.warn('Supabase article fetch failed, falling back to local dataset.', error.message);
+      }
       if (!error && data && data.length > 0) {
         return data.map(mapArticle);
       }
@@ -144,7 +159,7 @@ export async function fetchArticles(): Promise<Article[]> {
 
 export async function fetchArticleById(id: string): Promise<Article | undefined> {
   const articles = await fetchArticles();
-  return articles.find((article) => article.id === id) ?? localArticles.find((article) => article.id === id);
+  return articles.find((article) => article.id === id);
 }
 
 export function attachEvidenceToClaim(claimId: string, evidence: EvidenceItem): boolean {

@@ -1,6 +1,7 @@
 import { Article } from '@/types';
 
 export const SPORTS_CONTRAST_ARTICLE: Article = {
+  isDemo: true,
   id: 'art-sports-001',
   title: 'Hype vs. Podium: Did the Silver Medalist Receive 4x More Brand Endorsements Than the Gold Medalist?',
   summary: 'An investigation into commercial sponsorship disparities between Olympic medalists, tracking social engagement, broadcast airtime, and verified brand disclosure filings.',
@@ -34,6 +35,7 @@ export const SPORTS_CONTRAST_ARTICLE: Article = {
       evidence: [
         {
           id: 'ev-sports-001',
+          isDemo: true,
           type: 'Official document',
           title: 'ASCI corporate disclosure index',
           description: 'Dated sponsorship disclosures and agency releases associated with both athletes.',
@@ -55,6 +57,7 @@ export const SPORTS_CONTRAST_ARTICLE: Article = {
       evidence: [
         {
           id: 'ev-sports-002',
+          isDemo: true,
           type: 'Dataset',
           title: 'Prime-time homecoming monitoring log',
           description: 'Time-coded broadcast minutes collected during the 48-hour comparison window.',
@@ -76,6 +79,7 @@ export const SPORTS_CONTRAST_ARTICLE: Article = {
       evidence: [
         {
           id: 'ev-sports-003',
+          isDemo: true,
           type: 'Official document',
           title: 'Ministry sports reward circular',
           description: 'Public gazette circular documenting the approved reward and direct transfer record.',
@@ -97,6 +101,7 @@ export const SPORTS_CONTRAST_ARTICLE: Article = {
       evidence: [
         {
           id: 'ev-sports-004',
+          isDemo: true,
           type: 'External source',
           title: 'Social growth comparison snapshots',
           description: 'Unaudited screenshots claiming a 48-hour follower-growth comparison.',

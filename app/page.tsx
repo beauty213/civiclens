@@ -45,8 +45,15 @@ export default async function HomePage() {
   return (
     <div className="space-y-6 pb-12">
       <header className="border-b border-zinc-800 pb-4">
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">Articles</h1>
-        <p className="mt-1 text-sm text-zinc-400">See the grounding score, then open a story to review its claims and sources.</p>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">Articles</h1>
+            <p className="mt-1 text-sm text-zinc-400">See the grounding score, then open a story to review its claims and sources.</p>
+          </div>
+          <Link href="/intake" className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500">
+            Check a news story <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
       </header>
 
       {sortedArticles.length > 0 ? (

@@ -75,6 +75,7 @@ export interface EvidenceItem {
   date: string;
   uploaderPseudonym: string;
   provenanceNote: string;
+  isDemo?: boolean;
 }
 
 export interface ClaimComment {
@@ -164,6 +165,8 @@ export interface Article {
   corrections?: ArticleCorrection[];
   imageUrl?: string;
   imageCaption?: string;
+  sourceUrl?: string;
+  isDemo?: boolean;
 }
 
 export interface WitnessAccount {

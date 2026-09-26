@@ -87,6 +87,7 @@ export const MOCK_ARTICLES: Article[] = [
   SPORTS_CONTRAST_ARTICLE,
   {
     id: 'art-001',
+    isDemo: true,
     title: 'Bio-Divergent Lake Restoration Project Announced Across West Hyderabad',
     summary: 'Urban development authority approves a 5-lake revival project focusing on native wetland fauna and industrial run-off diversion.',
     bodyParagraphs: [
@@ -128,6 +129,7 @@ export const MOCK_ARTICLES: Article[] = [
         evidence: [
           {
             id: 'ev-1',
+            isDemo: true,
             type: 'Official document',
             title: 'Urban Water Quality Feasibility Tender #409',
             description: 'Tender specification detailing gravel bed depth and phytoremediation plant species selection.',
