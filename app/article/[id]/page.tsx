@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft,
@@ -11,6 +11,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { MOCK_ARTICLES } from '@/lib/mockData';
+import { fetchArticleById } from '@/lib/dataService';
 import { computeArticleScore } from '@/lib/scoring/engine';
 import { Article, Claim, EvidenceItem, EvidenceStatus } from '@/types';
 import { UploadEvidenceModal } from '@/components/evidence/UploadEvidenceModal';
@@ -243,17 +244,64 @@ export default function ArticleDetailPage() {
   const params = useParams();
   const router = useRouter();
   const articleId = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params.id[0] : 'art-001';
-  const article = MOCK_ARTICLES.find((candidate) => candidate.id === articleId) || MOCK_ARTICLES[0];
-  const [claims, setClaims] = useState(article.claims);
-  const [selectedClaimId, setSelectedClaimId] = useState<string | null>(article.claims[0]?.id ?? null);
+  const [loadedArticle, setLoadedArticle] = useState<Article | undefined>(() => MOCK_ARTICLES.find((candidate) => candidate.id === articleId));
+  const [loadedArticleId, setLoadedArticleId] = useState<string | null>(() => MOCK_ARTICLES.some((candidate) => candidate.id === articleId) ? articleId : null);
+  const [claimOverrides, setClaimOverrides] = useState<Record<string, Claim[]>>({});
+  const [selectedClaimIdState, setSelectedClaimIdState] = useState<string | null>(null);
   const [uploadClaim, setUploadClaim] = useState<Claim | null>(null);
+  const article = loadedArticle?.id === articleId ? loadedArticle : undefined;
+  const claims = article ? claimOverrides[article.id] ?? article.claims ?? [] : [];
+  const selectedClaimId = claims.some((claim) => claim.id === selectedClaimIdState)
+    ? selectedClaimIdState
+    : claims[0]?.id ?? null;
 
+  useEffect(() => {
+    let isCurrent = true;
+    fetchArticleById(articleId)
+      .then((loadedArticle) => {
+        if (!isCurrent) return;
+        setLoadedArticle(loadedArticle);
+        setLoadedArticleId(articleId);
+      })
+      .catch((error: unknown) => {
+        console.error('Unable to load article details:', error);
+        if (isCurrent) {
+          setLoadedArticle(undefined);
+          setLoadedArticleId(articleId);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [articleId]);
+
+  const setSelectedClaimId = (claimId: string) => setSelectedClaimIdState(claimId);
   const handleEvidenceAdded = (item: EvidenceItem) => {
-    if (!uploadClaim) return;
-    setClaims((currentClaims) => currentClaims.map((claim) => (
-      claim.id === uploadClaim.id ? { ...claim, evidence: [...claim.evidence, item] } : claim
-    )));
+    if (!uploadClaim || !article) return;
+    setClaimOverrides((current) => {
+      const articleClaims = current[article.id] ?? article.claims;
+      return {
+        ...current,
+        [article.id]: articleClaims.map((claim) => (
+          claim.id === uploadClaim.id ? { ...claim, evidence: [...claim.evidence, item] } : claim
+        )),
+      };
+    });
   };
+
+  if (!article) {
+    const hasLoaded = loadedArticleId === articleId;
+    return (
+      <div className="mx-auto max-w-xl rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 text-center">
+        <h1 className="text-lg font-semibold text-zinc-100">{hasLoaded ? 'Article not found' : 'Loading article…'}</h1>
+        <p className="mt-2 text-sm text-zinc-400">
+          {hasLoaded ? 'This story is no longer available in the current feed.' : 'Loading its claims and source records.'}
+        </p>
+        {hasLoaded && <button type="button" onClick={() => router.push('/')} className="mt-4 text-sm text-indigo-300 hover:text-indigo-200">Back to articles</button>}
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-[1500px] space-y-4 pb-12">

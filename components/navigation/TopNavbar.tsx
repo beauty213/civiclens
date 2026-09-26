@@ -7,6 +7,8 @@ import { MapPin, ChevronDown, Bell, PlayCircle } from 'lucide-react';
 import { useLocation } from '@/context/LocationContext';
 import { LocationModal } from './LocationModal';
 
+const SHOW_SECONDARY_NAV_CONTROLS = process.env.NEXT_PUBLIC_ENABLE_SECONDARY_NAV_CONTROLS === 'true';
+
 export function TopNavbar() {
   const { scope, getActiveScopeLabel } = useLocation();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,7 +28,7 @@ export function TopNavbar() {
           </Link>
 
           {/* Controls */}
-          <div className="flex items-center gap-2">
+          {SHOW_SECONDARY_NAV_CONTROLS && <div className="flex items-center gap-2">
             {/* Demo Mode Button */}
             <Link
               href="/demo"
@@ -54,7 +56,7 @@ export function TopNavbar() {
             >
               <Bell className="w-4 h-4" />
             </button>
-          </div>
+          </div>}
         </div>
       </header>
 
