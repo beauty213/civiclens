@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowRight, CheckCircle2, FileText, HelpCircle, ShieldAlert, Users } from 'lucide-react';
 import { AiShowdownWidget } from '@/components/home/AiShowdownWidget';
 import { StoryPulseFilters } from '@/components/home/StoryPulseFilters';
+import { HowItWorksModal } from '@/components/home/HowItWorksModal';
 import { fetchArticles, fetchCitizenReports, fetchCivicQuestions } from '@/lib/dataService';
 import { computeArticleScore } from '@/lib/scoring/engine';
 
@@ -44,6 +45,7 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-6 pb-12">
+      <HowItWorksModal />
       <header className="border-b border-zinc-800 pb-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>

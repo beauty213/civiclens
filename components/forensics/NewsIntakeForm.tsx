@@ -3,22 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoaderCircle, ShieldCheck } from 'lucide-react';
-import type { NewsCategory } from '@/types';
-
-const CATEGORIES: NewsCategory[] = [
-  'Politics',
-  'Education',
-  'Technology',
-  'Business',
-  'Environment',
-  'Science',
-  'Sports',
-  'Sports & Media Ethics',
-  'Culture',
-  'Public Safety',
-  'Health',
-  'Other',
-];
+import { CIVIC_NEWS_CATEGORIES, CivicNewsCategory } from '@/lib/newsCategories';
 
 export function NewsIntakeForm() {
   const router = useRouter();
@@ -26,7 +11,7 @@ export function NewsIntakeForm() {
   const [sourceName, setSourceName] = useState('');
   const [sourceUrl, setSourceUrl] = useState('');
   const [author, setAuthor] = useState('');
-  const [category, setCategory] = useState<NewsCategory>('Other');
+  const [category, setCategory] = useState<CivicNewsCategory>('Politics');
   const [articleText, setArticleText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -116,12 +101,12 @@ export function NewsIntakeForm() {
           <select
             value={category}
             onChange={(event) => {
-              const selectedCategory = CATEGORIES.find((item) => item === event.target.value);
+              const selectedCategory = CIVIC_NEWS_CATEGORIES.find((item) => item === event.target.value);
               if (selectedCategory) setCategory(selectedCategory);
             }}
             className="mt-1.5 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-sm text-zinc-100 outline-none focus:border-indigo-500"
           >
-            {CATEGORIES.map((item) => <option key={item} value={item}>{item}</option>)}
+            {CIVIC_NEWS_CATEGORIES.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
         </label>
         <label className="block text-xs font-medium text-zinc-300">

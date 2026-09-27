@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import { scanContentSafety } from '@/lib/safety/scanner';
 import { PrivacyWarningBanner } from '@/components/ui/PrivacyWarningBanner';
 import { ReportContentModal } from '@/components/ui/ReportContentModal';
-import { MessageSquare, HelpCircle, Eye, FileText, Send, Plus, Flag, ShieldAlert } from 'lucide-react';
+import { MessageSquare, FileText, Plus, Flag } from 'lucide-react';
 
 interface LocalPost {
   id: string;
@@ -112,7 +112,7 @@ export default function LocalPage() {
             <Badge variant="accent">{scope}</Badge>
           </div>
           <p className="text-xs text-zinc-400 mt-1">
-            Local discussions, verified neighborhood documentation, and eyewitness accounts.
+            Discussion preview only. Posts are not saved or shared with other people.
           </p>
         </div>
         <button

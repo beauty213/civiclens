@@ -1,19 +1,31 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { FileCheck2, Filter, Gauge, Layers3, Stethoscope, Trees, Wrench } from 'lucide-react';
+import { BriefcaseBusiness, Filter, Gauge, GraduationCap, HeartPulse, Layers3, Shield, Trees } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { Article } from '@/types';
 import { computeArticleScore } from '@/lib/scoring/engine';
 import { StoryCard } from '@/components/news/StoryCard';
+import { CIVIC_NEWS_CATEGORIES, CivicNewsCategory } from '@/lib/newsCategories';
 
-type PulseFilter = 'all' | 'infrastructure' | 'health' | 'environment' | 'rti' | 'hoax';
+type PulseFilter = 'all' | CivicNewsCategory | 'hoax';
 
-const FILTERS: Array<{ id: PulseFilter; label: string; icon: typeof Filter }> = [
-  { id: 'all', label: 'All Pulses', icon: Layers3 },
-  { id: 'infrastructure', label: 'Infrastructure', icon: Wrench },
-  { id: 'health', label: 'Public Health', icon: Stethoscope },
-  { id: 'environment', label: 'Environmental', icon: Trees },
-  { id: 'rti', label: 'RTI Audits', icon: FileCheck2 },
+const CATEGORY_ICONS: Record<CivicNewsCategory, LucideIcon> = {
+  Politics: Shield,
+  Education: GraduationCap,
+  Business: BriefcaseBusiness,
+  Environment: Trees,
+  'Public Safety': Shield,
+  Health: HeartPulse,
+};
+
+const FILTERS: Array<{ id: PulseFilter; label: string; icon: LucideIcon }> = [
+  { id: 'all', label: 'All Articles', icon: Layers3 },
+  ...CIVIC_NEWS_CATEGORIES.map((category) => ({
+    id: category,
+    label: category,
+    icon: CATEGORY_ICONS[category],
+  })),
   { id: 'hoax', label: 'High Hoax Risk', icon: Gauge },
 ];
 
@@ -22,13 +34,7 @@ export function StoryPulseFilters({ articles }: { articles: Article[] }) {
   const visibleArticles = useMemo(() => articles.filter((article) => {
     const score = computeArticleScore(article.claims ?? []);
     if (activeFilter === 'hoax') return score.score < 40;
-    if (activeFilter === 'infrastructure') return article.category === 'Public Safety' || /infrastructure|road|drain|lake|water/i.test(`${article.title} ${article.summary}`);
-    if (activeFilter === 'health') return article.category === 'Health';
-    if (activeFilter === 'environment') return article.category === 'Environment';
-    if (activeFilter === 'rti') {
-      return article.claims?.some((claim) => claim.evidence?.some((evidence) => /rti|right to information/i.test(`${evidence.title} ${evidence.provenanceNote}`))) ?? false;
-    }
-    return true;
+    return activeFilter === 'all' || article.category === activeFilter;
   }), [activeFilter, articles]);
 
   return (

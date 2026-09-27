@@ -62,6 +62,12 @@ export function StoryCard({ article }: StoryCardProps) {
               Demo story · not verified
             </p>
           )}
+          {article.intakeMethod === 'auto' && (
+            <p className="mb-3 w-fit rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-[10px] text-sky-200">
+              Google Search result
+              {article.assessmentStatus === 'in_progress' && ' · evidence assessment in progress'}
+            </p>
+          )}
           <div className="flex items-center justify-between gap-3">
             <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">{article.category}</span>
             <span className="rounded-full border border-slate-800 bg-slate-950/50 px-3 py-1 font-mono text-[10px] text-slate-400">

@@ -167,6 +167,8 @@ export interface Article {
   imageCaption?: string;
   sourceUrl?: string;
   isDemo?: boolean;
+  intakeMethod?: 'manual' | 'auto';
+  assessmentStatus?: 'complete' | 'in_progress';
 }
 
 export interface WitnessAccount {

@@ -304,6 +304,14 @@ export default function ArticleDetailPage() {
           This is a demo story with illustrative claim assessments and source records, not a live verification.
         </p>
       )}
+      {article.intakeMethod === 'auto' && (
+        <p className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-4 py-2.5 text-xs text-sky-200">
+          Found through Google Search.
+          {article.assessmentStatus === 'in_progress'
+            ? ' Just published — evidence assessment in progress because supporting source records are limited. Open the links and review the original reporting.'
+            : ' Open the source links and review the original reporting alongside the evidence assessment.'}
+        </p>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(360px,2fr)] lg:items-stretch">
         <main className="min-w-0 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-8">
@@ -316,7 +324,14 @@ export default function ArticleDetailPage() {
             </div>
             <h1 className="max-w-4xl text-2xl font-semibold leading-tight tracking-tight text-zinc-100 sm:text-3xl">{article.title}</h1>
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-500">
-              <span>By <strong className="text-zinc-300">{article.author}</strong> · {article.sourceName}</span>
+              <span>
+                By <strong className="text-zinc-300">{article.author}</strong> ·{' '}
+                {article.sourceUrl ? (
+                  <a href={article.sourceUrl} target="_blank" rel="noreferrer" className="text-indigo-300 hover:text-indigo-200">
+                    {article.sourceName} <ExternalLink className="inline h-3 w-3" />
+                  </a>
+                ) : article.sourceName}
+              </span>
               <span className="inline-flex items-center gap-1 text-indigo-300"><ShieldCheck className="h-3.5 w-3.5" /> Claims are highlighted for inspection</span>
             </div>
           </div>

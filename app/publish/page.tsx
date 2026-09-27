@@ -14,9 +14,10 @@ import {
   AlertTriangle,
   ArrowLeft 
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 
-const INTENT_OPTIONS: { id: PublishIntent; label: string; desc: string; icon: any }[] = [
+const INTENT_OPTIONS: { id: PublishIntent; label: string; desc: string; icon: LucideIcon }[] = [
   {
     id: 'witnessed',
     label: 'I Witnessed Something',
@@ -139,32 +140,49 @@ export default function PublishPage() {
           <div>
             <h1 className="text-lg font-semibold text-zinc-100">Contribute to CivicLens</h1>
             <p className="text-xs text-zinc-400 mt-0.5">
-              Select the option that best reflects your information source:
+              Public news assessment is available now. The other contribution types are coming soon.
             </p>
           </div>
 
           <div className="grid grid-cols-1 gap-3">
             {INTENT_OPTIONS.map((opt) => {
               const Icon = opt.icon;
+              if (opt.id === 'article') {
+                return (
+                  <Link
+                    key={opt.id}
+                    href="/intake"
+                    className="flex items-start gap-3 rounded-lg border border-zinc-800 bg-zinc-900 p-4 text-left transition-colors hover:border-indigo-500/80"
+                  >
+                    <div className="rounded bg-zinc-800 p-2 text-indigo-300">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-medium text-zinc-100">{opt.label}</h3>
+                      <p className="mt-0.5 text-xs text-zinc-400">Submit a public news story to extract claims and review source records.</p>
+                    </div>
+                    <span className="shrink-0 self-center text-[10px] font-medium text-indigo-300">Available</span>
+                  </Link>
+                );
+              }
+
               return (
-                <button
+                <div
                   key={opt.id}
-                  onClick={() => {
-                    setSelectedIntent(opt.id);
-                    setIsFirsthand(opt.id === 'witnessed' || opt.id === 'saw');
-                  }}
-                  className="flex items-start gap-3 p-4 bg-zinc-900 border border-zinc-800 hover:border-indigo-500/80 rounded-lg text-left transition-colors group"
+                  aria-disabled="true"
+                  className="flex items-start gap-3 rounded-lg border border-zinc-800 bg-zinc-900/60 p-4 text-left opacity-75"
                 >
-                  <div className="p-2 rounded bg-zinc-800 group-hover:bg-indigo-950 text-zinc-300 group-hover:text-indigo-300 transition-colors">
-                    <Icon className="w-5 h-5" />
+                  <div className="rounded bg-zinc-800 p-2 text-zinc-400">
+                    <Icon className="h-5 w-5" />
                   </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-zinc-200 group-hover:text-zinc-100">
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-zinc-200">
                       {opt.label}
                     </h3>
-                    <p className="text-xs text-zinc-400 mt-0.5">{opt.desc}</p>
+                    <p className="mt-0.5 text-xs text-zinc-400">{opt.desc}</p>
                   </div>
-                </button>
+                  <span className="shrink-0 self-center rounded-full border border-zinc-700 px-2 py-1 font-mono text-[9px] uppercase tracking-wider text-zinc-500">Coming soon</span>
+                </div>
               );
             })}
           </div>
@@ -320,7 +338,7 @@ export default function PublishPage() {
               <label className="block text-xs font-medium text-zinc-300 mb-1">Publishing Under</label>
               <select
                 value={identityType}
-                onChange={(e) => setIdentityType(e.target.value as any)}
+                onChange={(e) => setIdentityType(e.target.value === 'real_name' ? 'real_name' : 'pseudonym')}
                 className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-200 focus:outline-none"
               >
                 <option value="pseudonym">Pseudonym (Community Handle)</option>

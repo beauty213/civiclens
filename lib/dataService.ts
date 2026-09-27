@@ -131,6 +131,8 @@ function mapArticle(value: unknown): Article {
     imageCaption: asText(row.image_caption ?? row.imageCaption) || undefined,
     sourceUrl: asText(row.source_url ?? row.sourceUrl) || undefined,
     isDemo: row.is_demo === true,
+    intakeMethod: row.intake_method === 'auto' ? 'auto' : 'manual',
+    assessmentStatus: row.assessment_status === 'in_progress' ? 'in_progress' : 'complete',
   };
 }
 

@@ -1,6 +1,10 @@
 ALTER TABLE public.articles
   ADD COLUMN IF NOT EXISTS source_url TEXT,
-  ADD COLUMN IF NOT EXISTS is_demo BOOLEAN NOT NULL DEFAULT FALSE;
+  ADD COLUMN IF NOT EXISTS is_demo BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS intake_method TEXT NOT NULL DEFAULT 'manual'
+    CHECK (intake_method IN ('manual', 'auto')),
+  ADD COLUMN IF NOT EXISTS assessment_status TEXT NOT NULL DEFAULT 'complete'
+    CHECK (assessment_status IN ('complete', 'in_progress'));
 
 ALTER TABLE public.evidence_items
   ADD COLUMN IF NOT EXISTS is_demo BOOLEAN NOT NULL DEFAULT FALSE;
@@ -31,3 +35,7 @@ WHERE EXISTS (
 UPDATE public.articles
 SET is_demo = TRUE
 WHERE title ILIKE 'Hype vs. Podium:%';
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_articles_auto_source_url
+  ON public.articles (source_url)
+  WHERE intake_method = 'auto' AND source_url IS NOT NULL;

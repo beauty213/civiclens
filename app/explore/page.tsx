@@ -1,27 +1,41 @@
 // app/explore/page.tsx
 'use client';
 
-import React, { useState } from 'react';
-import { Search, Compass, MapPin, Tag, ShieldCheck, HelpCircle } from 'lucide-react';
-import { MOCK_ARTICLES, MOCK_QUESTIONS, MOCK_CITIZEN_REPORTS } from '@/lib/mockData';
+import React, { useEffect, useState } from 'react';
+import { Search, Compass } from 'lucide-react';
+import { fetchArticles } from '@/lib/dataService';
 import { StoryCard } from '@/components/news/StoryCard';
-import { Badge } from '@/components/ui/Badge';
+import { Article } from '@/types';
+import { CIVIC_NEWS_CATEGORIES } from '@/lib/newsCategories';
 
-const CATEGORIES = [
-  'All',
-  'Environment',
-  'Public Safety',
-  'Science',
-  'Technology',
-  'Education',
-  'Politics',
-];
+const CATEGORIES = ['All', ...CIVIC_NEWS_CATEGORIES] as const;
+type ExploreCategory = typeof CATEGORIES[number];
 
 export default function ExplorePage() {
   const [query, setQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState<ExploreCategory>('All');
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredArticles = MOCK_ARTICLES.filter((article) => {
+  useEffect(() => {
+    let current = true;
+    fetchArticles()
+      .then((loadedArticles) => {
+        if (current) setArticles(loadedArticles);
+      })
+      .catch((error: unknown) => {
+        console.error('Unable to load articles for Explore:', error);
+      })
+      .finally(() => {
+        if (current) setIsLoading(false);
+      });
+
+    return () => {
+      current = false;
+    };
+  }, []);
+
+  const filteredArticles = articles.filter((article) => {
     const matchesSearch =
       article.title.toLowerCase().includes(query.toLowerCase()) ||
       article.summary.toLowerCase().includes(query.toLowerCase());
@@ -42,7 +56,7 @@ export default function ExplorePage() {
           <Search className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3" />
           <input
             type="text"
-            placeholder="Search articles, citizen reports, claims, questions, or locations..."
+            placeholder="Search article headlines and summaries..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-10 pr-4 py-2.5 text-xs text-zinc-100 outline-none focus:border-indigo-500 transition-colors"
@@ -77,7 +91,7 @@ export default function ExplorePage() {
 
         {filteredArticles.length === 0 ? (
           <div className="p-8 text-center text-zinc-500 text-xs border border-zinc-800 rounded-lg bg-zinc-900">
-            No reporting or reports matched your query.
+            {isLoading ? 'Loading articles…' : 'No articles matched your query.'}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -88,28 +102,6 @@ export default function ExplorePage() {
         )}
       </div>
 
-      {/* Quick Access to Questions and Citizen Reports */}
-      <div className="border-t border-zinc-800 pt-6 space-y-3">
-        <h3 className="text-xs font-mono uppercase tracking-wider text-zinc-400">
-          Recent Community Inquiries
-        </h3>
-        <div className="space-y-2">
-          {MOCK_QUESTIONS.map((q) => (
-            <div
-              key={q.id}
-              className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-xs flex items-center justify-between"
-            >
-              <div className="flex items-center gap-2 text-zinc-300">
-                <HelpCircle className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                <span className="line-clamp-1">{q.questionText}</span>
-              </div>
-              <span className="text-zinc-500 font-mono shrink-0 ml-2">
-                {q.communityAnswersCount} answers
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
