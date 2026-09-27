@@ -49,6 +49,9 @@ export interface ArticleAssessmentInput {
   sourceUrl: string;
   articleText: string;
   summary?: string;
+  imageUrl?: string;
+  imageCaption?: string;
+  imageCredit?: string;
   author: string;
   category: NewsCategory;
   intakeMethod: 'manual' | 'auto';
@@ -221,6 +224,9 @@ export async function analyzeAndStoreArticle(
     body_paragraphs: paragraphs,
     source_name: input.sourceName,
     source_url: input.sourceUrl,
+    image_url: input.imageUrl ?? null,
+    image_caption: input.imageCaption ?? null,
+    image_credit: input.imageCredit ?? null,
     author: input.author,
     published_at: new Date().toISOString(),
     category: input.category,

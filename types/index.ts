@@ -25,6 +25,7 @@ export type NewsCategory =
   | 'Culture'
   | 'Public Safety'
   | 'Health'
+  | 'High Hoax Risk'
   | 'Other';
 
 export type EvidenceStatus =
@@ -165,6 +166,7 @@ export interface Article {
   corrections?: ArticleCorrection[];
   imageUrl?: string;
   imageCaption?: string;
+  imageCredit?: string;
   sourceUrl?: string;
   isDemo?: boolean;
   intakeMethod?: 'manual' | 'auto';

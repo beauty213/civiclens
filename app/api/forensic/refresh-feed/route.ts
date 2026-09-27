@@ -24,6 +24,9 @@ interface TrendingStory {
   category: typeof CIVIC_NEWS_CATEGORIES[number];
   summary: string;
   article_text: string;
+  image_url: string | null;
+  image_caption: string | null;
+  image_credit: string | null;
 }
 
 function asObject(value: unknown): Record<string, unknown> | undefined {
@@ -34,7 +37,7 @@ function asObject(value: unknown): Record<string, unknown> | undefined {
 
 function parseTrendingStories(value: unknown): TrendingStory[] | null {
   const result = asObject(value);
-  if (!Array.isArray(result?.stories) || result.stories.length > 6) return null;
+  if (!Array.isArray(result?.stories) || result.stories.length > CIVIC_NEWS_CATEGORIES.length) return null;
 
   const stories: TrendingStory[] = [];
   for (const item of result.stories) {
@@ -59,6 +62,18 @@ function parseTrendingStories(value: unknown): TrendingStory[] | null {
       continue;
     }
 
+    let imageUrl: string | null = null;
+    if (typeof row.image_url === 'string') {
+      try {
+        const parsedImageUrl = new URL(row.image_url);
+        if (parsedImageUrl.protocol === 'https:' && !parsedImageUrl.username && !parsedImageUrl.password) {
+          imageUrl = parsedImageUrl.toString();
+        }
+      } catch {
+        imageUrl = null;
+      }
+    }
+
     stories.push({
       title: row.title.slice(0, 500),
       source_name: row.source_name.slice(0, 150),
@@ -66,6 +81,13 @@ function parseTrendingStories(value: unknown): TrendingStory[] | null {
       category: row.category as TrendingStory['category'],
       summary: row.summary.slice(0, 500),
       article_text: row.article_text.trim(),
+      image_url: imageUrl,
+      image_caption: typeof row.image_caption === 'string' ? row.image_caption.slice(0, 500) : null,
+      image_credit: imageUrl
+        ? (typeof row.image_credit === 'string' && row.image_credit.trim()
+          ? row.image_credit.slice(0, 150)
+          : row.source_name.slice(0, 150))
+        : null,
     });
   }
   const uniqueStories = new Map(stories.map((story) => [story.category, story]));
@@ -159,6 +181,9 @@ export async function POST(request: Request) {
       sourceUrl: story.source_url,
       articleText: story.article_text,
       summary: story.summary,
+      imageUrl: story.image_url ?? undefined,
+      imageCaption: story.image_caption ?? undefined,
+      imageCredit: story.image_credit ?? undefined,
       author: 'CivicLens News Desk',
       category: story.category,
       intakeMethod: 'auto',

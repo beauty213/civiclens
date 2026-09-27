@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import { PublishIntent, NewsCategory } from '@/types';
 import { Badge } from '@/components/ui/Badge';
+import { CIVIC_NEWS_CATEGORIES } from '@/lib/newsCategories';
 import { 
   Eye, 
   Camera, 
@@ -50,17 +51,7 @@ const INTENT_OPTIONS: { id: PublishIntent; label: string; desc: string; icon: Lu
   },
 ];
 
-const CATEGORIES: NewsCategory[] = [
-  'Public Safety',
-  'Environment',
-  'Technology',
-  'Education',
-  'Business',
-  'Science',
-  'Culture',
-  'Health',
-  'Other',
-];
+const CATEGORIES: readonly NewsCategory[] = CIVIC_NEWS_CATEGORIES;
 
 export default function PublishPage() {
   const [selectedIntent, setSelectedIntent] = useState<PublishIntent | null>(null);
@@ -70,7 +61,7 @@ export default function PublishPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [generalLocation, setGeneralLocation] = useState('Gachibowli, Hyderabad');
-  const [category, setCategory] = useState<NewsCategory>('Public Safety');
+  const [category, setCategory] = useState<NewsCategory>(CIVIC_NEWS_CATEGORIES[0]);
   const [isFirsthand, setIsFirsthand] = useState(true);
   const [uncertainties, setUncertainties] = useState('');
   const [evidenceNotes, setEvidenceNotes] = useState('');

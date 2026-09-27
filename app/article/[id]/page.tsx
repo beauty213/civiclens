@@ -13,6 +13,7 @@ import { MOCK_ARTICLES } from '@/lib/mockData';
 import { fetchArticleById } from '@/lib/dataService';
 import { computeArticleScore } from '@/lib/scoring/engine';
 import { Article, Claim, EvidenceItem, EvidenceStatus } from '@/types';
+import { ArticleImage } from '@/components/news/ArticleImage';
 
 const STATUS_STYLES: Record<EvidenceStatus, string> = {
   'Well-supported': 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300',
@@ -335,6 +336,7 @@ export default function ArticleDetailPage() {
               <span className="inline-flex items-center gap-1 text-indigo-300"><ShieldCheck className="h-3.5 w-3.5" /> Claims are highlighted for inspection</span>
             </div>
           </div>
+          <ArticleImage article={article} className="mb-6" />
           <HighlightedArticle article={{ ...article, claims }} selectedClaimId={selectedClaimId} onSelect={setSelectedClaimId} />
         </main>
 

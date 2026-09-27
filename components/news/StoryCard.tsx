@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Article } from '@/types';
 import { computeArticleScore } from '@/lib/scoring/engine';
 import { ArrowUpRight, MapPin, Trophy } from 'lucide-react';
+import { ArticleImage } from '@/components/news/ArticleImage';
 
 interface StoryCardProps {
   article: Article;
@@ -22,33 +23,12 @@ export function StoryCard({ article }: StoryCardProps) {
   return (
     <article className="group flex flex-col justify-between rounded-2xl border border-slate-800/80 bg-slate-900/40 p-6 backdrop-blur-md transition-all duration-300 hover:border-slate-700 hover:shadow-xl hover:shadow-emerald-500/5">
         <div>
-          <div
-            className="relative mb-5 aspect-video overflow-hidden rounded-xl border border-slate-800/80 bg-slate-950"
-            style={article.imageUrl ? {
-              backgroundImage: `linear-gradient(180deg, rgba(11,15,23,0.05), rgba(11,15,23,0.86)), url("${article.imageUrl}")`,
-              backgroundPosition: 'center',
-              backgroundSize: 'cover',
-            } : undefined}
-            role={article.imageUrl ? 'img' : undefined}
-            aria-label={article.imageUrl ? article.imageCaption ?? article.title : undefined}
-          >
-            {!article.imageUrl && (
-              <svg className="absolute inset-0 h-full w-full" viewBox="0 0 640 360" preserveAspectRatio="none" aria-hidden="true">
-                <defs>
-                  <linearGradient id={`story-gradient-${article.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#132f38" />
-                    <stop offset="52%" stopColor="#172238" />
-                    <stop offset="100%" stopColor="#271b36" />
-                  </linearGradient>
-                  <pattern id={`story-grid-${article.id}`} width="32" height="32" patternUnits="userSpaceOnUse">
-                    <path d="M32 0H0V32" fill="none" stroke="#94a3b8" strokeOpacity="0.12" />
-                  </pattern>
-                </defs>
-                <rect width="640" height="360" fill={`url(#story-gradient-${article.id})`} />
-                <rect width="640" height="360" fill={`url(#story-grid-${article.id})`} />
-              </svg>
-            )}
-            <div className="absolute inset-0 flex items-end justify-between p-4">
+          <div className="mb-5">
+            <ArticleImage
+              article={article}
+              compact
+              overlay={(
+                <div className="absolute inset-0 flex items-end justify-between p-4">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-slate-950/60 px-2.5 py-1 font-mono text-[10px] text-slate-200 backdrop-blur-sm">
                 <Trophy className="h-3.5 w-3.5 text-emerald-300" /> Evidence brief
               </span>
@@ -56,6 +36,8 @@ export function StoryCard({ article }: StoryCardProps) {
                 {hasClaims ? `${score.score}% grounded` : 'Not assessed'}
               </span>
             </div>
+              )}
+            />
           </div>
           {article.isDemo && (
             <p className="mb-3 w-fit rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-amber-300">

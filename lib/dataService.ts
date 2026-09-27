@@ -129,6 +129,7 @@ function mapArticle(value: unknown): Article {
     claims: asRecordList(row.claims).map(mapClaim),
     imageUrl: asText(row.image_url ?? row.imageUrl) || undefined,
     imageCaption: asText(row.image_caption ?? row.imageCaption) || undefined,
+    imageCredit: asText(row.image_credit ?? row.imageCredit) || undefined,
     sourceUrl: asText(row.source_url ?? row.sourceUrl) || undefined,
     isDemo: row.is_demo === true,
     intakeMethod: row.intake_method === 'auto' ? 'auto' : 'manual',

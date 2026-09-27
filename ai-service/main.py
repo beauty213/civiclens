@@ -1,8 +1,12 @@
 import json
+import ipaddress
 import logging
 import os
 import re
+import socket
 from typing import Literal
+from html.parser import HTMLParser
+from urllib.parse import urljoin, urlsplit
 
 import requests
 from fastapi import FastAPI, HTTPException
@@ -67,6 +71,9 @@ class TrendingStory(BaseModel):
     category: str = Field(min_length=1, max_length=50)
     summary: str = Field(min_length=1, max_length=1000)
     article_text: str = Field(min_length=80, max_length=12000)
+    image_url: HttpUrl | None = None
+    image_caption: str | None = Field(default=None, max_length=500)
+    image_credit: str | None = Field(default=None, max_length=150)
 
 
 class TrendingResponse(BaseModel):
@@ -136,11 +143,12 @@ SUPPLIED SOURCE DOCUMENTS:
 def build_trending_prompt(payload: TrendingRequest) -> str:
     category_list = ", ".join(payload.categories)
     return f"""
-Find up to six current, genuinely published news stories from the last 72 hours
+Find up to seven current, genuinely published news stories from the last 72 hours
 about civic issues in {payload.region}. Use Google Search to locate the original
 publisher's article page. Prefer established local news publishers and official
 public agencies. Exclude opinion, old stories, duplicate coverage of the same
-event, social media posts, and pages that are only search result pages.
+event, social media posts, and pages that are only search result pages. Search
+for all categories in this list: {category_list}.
 
 Return JSON only with a "stories" array. Every object must contain:
 "title" (the publisher's actual headline), "source_name" (publisher),
@@ -148,12 +156,181 @@ Return JSON only with a "stories" array. Every object must contain:
 list: {category_list}), "summary" (a brief attributed, neutral paraphrase),
 and "article_text" (an 80-12000 character factual synopsis of the reported
 story, preserving attribution and uncertainty; do not invent quotes or details).
+Use "High Hoax Risk" only when the story concerns a viral factual claim whose
+claim itself has clear warning characteristics, such as no named source,
+misleadingly edited evidence, or a claim contradicted by reliable records. This
+is a claim-based label, not a general topic category. Otherwise use the story's
+main civic subject category.
+
 Use only facts from the search results and cited publisher pages. Do not invent
 URLs, headlines, or publication details. Include at most one story per category
 and try to include one story for each category when a qualifying recent article
 exists. Only include a story if Google Search returned its exact article URL as
 a grounding source; omit a category if no qualifying real story is found.
 """.strip()
+
+
+class ArticlePageParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.meta: dict[str, str] = {}
+        self.article_depth = 0
+        self.article_paragraphs: list[str] = []
+        self.all_paragraphs: list[str] = []
+        self.article_images: list[tuple[str, str]] = []
+        self._paragraph_depth = 0
+        self._paragraph_in_article = False
+        self._paragraph_parts: list[str] = []
+        self._h1_depth = 0
+        self._h1_parts: list[str] = []
+        self.headline = ""
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attributes = {name.lower(): value or "" for name, value in attrs}
+        if tag == "meta":
+            key = (attributes.get("property") or attributes.get("name") or "").lower()
+            content = attributes.get("content", "").strip()
+            if key and content:
+                self.meta.setdefault(key, content)
+        if tag == "article":
+            self.article_depth += 1
+        elif tag == "p":
+            self._paragraph_depth += 1
+            self._paragraph_in_article = self.article_depth > 0
+            if self._paragraph_depth == 1:
+                self._paragraph_parts = []
+        elif tag == "h1":
+            self._h1_depth += 1
+            self._h1_parts = []
+        elif tag == "img" and self.article_depth > 0:
+            image_url = attributes.get("src") or attributes.get("data-src") or attributes.get("data-original")
+            if image_url:
+                self.article_images.append((image_url.strip(), attributes.get("alt", "").strip()))
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "article" and self.article_depth > 0:
+            self.article_depth -= 1
+        elif tag == "p" and self._paragraph_depth > 0:
+            self._paragraph_depth -= 1
+            if self._paragraph_depth == 0:
+                paragraph = " ".join(" ".join(self._paragraph_parts).split())
+                if len(paragraph) >= 40:
+                    self.all_paragraphs.append(paragraph)
+                    if self._paragraph_in_article:
+                        self.article_paragraphs.append(paragraph)
+                self._paragraph_parts = []
+                self._paragraph_in_article = False
+        elif tag == "h1" and self._h1_depth > 0:
+            self._h1_depth -= 1
+            headline = " ".join(" ".join(self._h1_parts).split())
+            if headline and not self.headline:
+                self.headline = headline
+
+    def handle_data(self, data: str) -> None:
+        if self._paragraph_depth > 0:
+            self._paragraph_parts.append(data)
+        if self._h1_depth > 0:
+            self._h1_parts.append(data)
+
+
+def is_safe_publisher_url(value: str) -> bool:
+    try:
+        parsed = urlsplit(value)
+        if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
+            return False
+        if parsed.port not in (None, 443):
+            return False
+        hostname = parsed.hostname.rstrip(".").lower()
+        if hostname in {"localhost", "localhost.localdomain"} or hostname.endswith((".local", ".internal")):
+            return False
+        try:
+            addresses = [ipaddress.ip_address(hostname)]
+        except ValueError:
+            addresses = [
+                ipaddress.ip_address(item[4][0])
+                for item in socket.getaddrinfo(hostname, 443, type=socket.SOCK_STREAM)
+            ]
+        return bool(addresses) and all(address.is_global for address in addresses)
+    except (ValueError, OSError):
+        return False
+
+
+def is_usable_image_url(value: str, base_url: str) -> str | None:
+    absolute = urljoin(base_url, value.strip())
+    if not is_safe_publisher_url(absolute):
+        return None
+    return absolute
+
+
+def extract_publisher_page(url: str) -> tuple[str | None, str | None, str | None, str | None, str | None]:
+    current_url = url
+    response_content: bytes | None = None
+    response_encoding = "utf-8"
+
+    for _ in range(4):
+        if not is_safe_publisher_url(current_url):
+            logger.info("Skipped unsafe publisher redirect URL")
+            return None, None, None, None, None
+        try:
+            with requests.get(
+                current_url,
+                headers={"User-Agent": "CivicLensBot/1.0 (public article metadata and attribution)"},
+                timeout=(5, 12),
+                stream=True,
+                allow_redirects=False,
+            ) as response:
+                if response.is_redirect:
+                    location = response.headers.get("Location")
+                    if not location:
+                        return None, None, None, None, None
+                    current_url = urljoin(current_url, location)
+                    continue
+                if response.status_code != 200 or "text/html" not in response.headers.get("Content-Type", "").lower():
+                    return None, None, None, None, None
+                content_length = response.headers.get("Content-Length")
+                if content_length and int(content_length) > 2_000_000:
+                    return None, None, None, None, None
+                chunks = []
+                size = 0
+                for chunk in response.iter_content(chunk_size=16384):
+                    size += len(chunk)
+                    if size > 2_000_000:
+                        return None, None, None, None, None
+                    chunks.append(chunk)
+                response_content = b"".join(chunks)
+                response_encoding = response.encoding or "utf-8"
+                current_url = response.url
+                break
+        except (requests.RequestException, ValueError) as error:
+            logger.info("Publisher page metadata could not be read: %s", error)
+            return None, None, None, None, None
+
+    if response_content is None or not is_safe_publisher_url(current_url):
+        return None, None, None, None, None
+
+    parser = ArticlePageParser()
+    try:
+        parser.feed(response_content.decode(response_encoding, errors="replace"))
+    except (LookupError, UnicodeError) as error:
+        logger.info("Publisher article page could not be decoded: %s", error)
+        return None, None, None, None, None
+
+    raw_image = (
+        parser.meta.get("og:image")
+        or parser.meta.get("og:image:url")
+        or parser.meta.get("twitter:image")
+        or (parser.article_images[0][0] if parser.article_images else "")
+    )
+    image_url = is_usable_image_url(raw_image, current_url) if raw_image else None
+    image_caption = parser.meta.get("og:image:alt") or parser.meta.get("twitter:image:alt")
+    if not image_caption and parser.article_images:
+        candidate_image = parser.article_images[0][0]
+        if image_url and is_usable_image_url(candidate_image, current_url) == image_url:
+            image_caption = parser.article_images[0][1] or None
+
+    paragraphs = parser.article_paragraphs if len(" ".join(parser.article_paragraphs)) >= 80 else parser.all_paragraphs
+    article_text = "\n\n".join(paragraphs)[:50000] if len(" ".join(paragraphs)) >= 80 else None
+    return image_url, image_caption, article_text, parser.headline or None, parser.meta.get("og:site_name")
 
 
 def parse_model_json(text: str) -> dict:
@@ -294,19 +471,33 @@ def find_trending_stories(payload: TrendingRequest) -> TrendingResponse:
 
     stories = []
     seen_categories = set()
-    for raw_story in raw_stories[:6]:
+    for raw_story in raw_stories[:7]:
         try:
             story = TrendingStory.model_validate(raw_story)
         except (ValidationError, TypeError, ValueError) as error:
             logger.info("Skipping malformed Gemini trending result: %s", error)
             continue
+        raw_source_url = raw_story.get("source_url") if isinstance(raw_story, dict) else None
         if (
             story.category not in allowed_categories
             or story.category in seen_categories
-            or str(story.source_url) not in grounded_urls
+            or not isinstance(raw_source_url, str)
+            or raw_source_url not in grounded_urls
         ):
             continue
-        stories.append(story)
+        image_url, image_caption, page_text, page_headline, page_source_name = extract_publisher_page(raw_source_url)
+        enriched_story = story.model_copy(update={
+            "title": page_headline[:500] if page_headline and page_headline.strip() else story.title,
+            "source_name": page_source_name[:150] if page_source_name and page_source_name.strip() else story.source_name,
+            "article_text": page_text[:12000] if page_text and len(page_text.strip()) >= 80 else story.article_text,
+            "image_url": image_url,
+            "image_caption": image_caption,
+            "image_credit": (
+                page_source_name[:150] if page_source_name and page_source_name.strip()
+                else story.source_name
+            ) if image_url else None,
+        })
+        stories.append(enriched_story)
         seen_categories.add(story.category)
 
     return TrendingResponse(stories=stories, model=model)

@@ -18,7 +18,7 @@ const STEPS = [
   'Gemini finds current local news, or you submit a public story.',
   'Gemini separates the story into factual claims that can be checked.',
   'Each claim is compared with available source records and given an evidence tier.',
-  'A grounding score summarizes the review. Open the story to read each claim and its linked receipts.',
+  'A grounding score summarizes the review. Open the story to read each claim, its receipts, and always credit the original source and image.',
 ];
 
 export function HowItWorksModal() {
@@ -107,7 +107,7 @@ export function HowItWorksModal() {
             </div>
 
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-zinc-800 pt-4">
-              <p className="max-w-xs text-xs leading-relaxed text-zinc-500">A score is a starting point, not a substitute for reading the sources.</p>
+              <p className="max-w-xs text-xs leading-relaxed text-zinc-500">Always verify by reading the source receipts and attributed image credits.</p>
               <Link
                 href="/intake"
                 onClick={close}

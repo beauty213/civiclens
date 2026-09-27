@@ -7,6 +7,7 @@ export const CIVIC_NEWS_CATEGORIES = [
   'Environment',
   'Public Safety',
   'Health',
+  'High Hoax Risk',
 ] as const satisfies readonly NewsCategory[];
 
 export type CivicNewsCategory = typeof CIVIC_NEWS_CATEGORIES[number];

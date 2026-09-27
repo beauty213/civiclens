@@ -1,14 +1,13 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { BriefcaseBusiness, Filter, Gauge, GraduationCap, HeartPulse, Layers3, Shield, Trees } from 'lucide-react';
+import { BriefcaseBusiness, Filter, GraduationCap, HeartPulse, Layers3, Shield, Trees } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Article } from '@/types';
-import { computeArticleScore } from '@/lib/scoring/engine';
 import { StoryCard } from '@/components/news/StoryCard';
 import { CIVIC_NEWS_CATEGORIES, CivicNewsCategory } from '@/lib/newsCategories';
 
-type PulseFilter = 'all' | CivicNewsCategory | 'hoax';
+type PulseFilter = 'all' | CivicNewsCategory;
 
 const CATEGORY_ICONS: Record<CivicNewsCategory, LucideIcon> = {
   Politics: Shield,
@@ -17,6 +16,7 @@ const CATEGORY_ICONS: Record<CivicNewsCategory, LucideIcon> = {
   Environment: Trees,
   'Public Safety': Shield,
   Health: HeartPulse,
+  'High Hoax Risk': Layers3,
 };
 
 const FILTERS: Array<{ id: PulseFilter; label: string; icon: LucideIcon }> = [
@@ -26,14 +26,11 @@ const FILTERS: Array<{ id: PulseFilter; label: string; icon: LucideIcon }> = [
     label: category,
     icon: CATEGORY_ICONS[category],
   })),
-  { id: 'hoax', label: 'High Hoax Risk', icon: Gauge },
 ];
 
 export function StoryPulseFilters({ articles }: { articles: Article[] }) {
   const [activeFilter, setActiveFilter] = useState<PulseFilter>('all');
   const visibleArticles = useMemo(() => articles.filter((article) => {
-    const score = computeArticleScore(article.claims ?? []);
-    if (activeFilter === 'hoax') return score.score < 40;
     return activeFilter === 'all' || article.category === activeFilter;
   }), [activeFilter, articles]);
 
