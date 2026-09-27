@@ -5,7 +5,7 @@ import { supabase, isSupabaseConfigured } from './supabase/client';
 import { isCivicNewsCategory } from './newsCategories';
 import { isSpecificHttpsSourceUrl } from './forensics/sourceLinks';
 
-// In-memory working cache for session persistence when Supabase credentials are absent
+// Keep local demo records available for explicitly local-only evidence interactions.
 const localArticles: Article[] = MOCK_ARTICLES.map((article) => ({
   ...article,
   isDemo: true,
@@ -136,10 +136,9 @@ export async function fetchArticles(): Promise<Article[]> {
       const { data, error } = await supabase
         .from('articles')
         .select('*, claims(*, evidence_items(*)), locations(*)')
-        .eq('is_demo', false)
         .order('published_at', { ascending: false });
       if (error) {
-        console.warn('Supabase article fetch failed, falling back to local dataset.', error.message);
+        console.warn('Supabase article fetch failed; feed articles are unavailable.', error.message);
       }
       if (!error && data && data.length > 0) {
         const articles = data
@@ -155,10 +154,10 @@ export async function fetchArticles(): Promise<Article[]> {
         }
       }
     } catch (err) {
-      console.warn('Supabase fetch failed, falling back to local dataset.', err);
+      console.warn('Supabase fetch failed; feed articles are unavailable.', err);
     }
   }
-  return localArticles;
+  return [];
 }
 
 export async function fetchArticleById(id: string): Promise<Article | undefined> {

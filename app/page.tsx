@@ -10,6 +10,8 @@ import { isSpecificHttpsSourceUrl } from '@/lib/forensics/sourceLinks';
 
 const SHOW_SECONDARY_HOME_SECTIONS = process.env.NEXT_PUBLIC_ENABLE_SECONDARY_HOME_SECTIONS === 'true';
 
+export const dynamic = 'force-dynamic';
+
 function ScoreRing({ score }: { score: number }) {
   const radius = 34;
   const circumference = 2 * Math.PI * radius;

@@ -36,7 +36,6 @@ export default function ExplorePage() {
   }, []);
 
   const filteredArticles = articles.filter((article) => {
-    if (article.isDemo) return false;
     const matchesSearch =
       article.title.toLowerCase().includes(query.toLowerCase()) ||
       article.summary.toLowerCase().includes(query.toLowerCase());

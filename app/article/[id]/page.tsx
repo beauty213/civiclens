@@ -16,6 +16,7 @@ import { Article, Claim, EvidenceItem, EvidenceStatus } from '@/types';
 import { ArticleImage } from '@/components/news/ArticleImage';
 import { ArticleAssessmentBadge } from '@/components/news/ArticleAssessmentBadge';
 import { isSpecificHttpsSourceUrl } from '@/lib/forensics/sourceLinks';
+import { ArticleCommunity } from '@/components/community/ArticleCommunity';
 
 const STATUS_STYLES: Record<EvidenceStatus, string> = {
   'Well-supported': 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300',
@@ -353,10 +354,7 @@ export default function ArticleDetailPage() {
         />
       </div>
 
-      <section className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
-        <h2 className="text-sm font-medium text-zinc-200">Community discussion</h2>
-        <p className="mt-1 text-xs text-zinc-500">Comments are coming later. For now, review the claims and open their source records.</p>
-      </section>
+      <ArticleCommunity articleId={article.id} isDemo={article.isDemo} />
     </div>
   );
 }
