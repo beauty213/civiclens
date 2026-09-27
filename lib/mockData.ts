@@ -133,10 +133,9 @@ export const MOCK_ARTICLES: Article[] = [
             type: 'Official document',
             title: 'Urban Water Quality Feasibility Tender #409',
             description: 'Tender specification detailing gravel bed depth and phytoremediation plant species selection.',
-            sourceUrl: 'https://example.gov.in/tenders/409',
             date: '2026-08-14',
             uploaderPseudonym: 'CivicAuditor',
-            provenanceNote: 'Published in official municipal gazette archives.'
+            provenanceNote: 'Demo record; a specific public tender link was not supplied.'
           }
         ],
         missingInformation: [

@@ -1,6 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { analyzeAndStoreArticle } from '@/lib/forensics/analyzeArticle';
+import { isSpecificHttpsSourceUrl } from '@/lib/forensics/sourceLinks';
 import { CIVIC_NEWS_CATEGORIES } from '@/lib/newsCategories';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
@@ -55,12 +56,7 @@ function parseTrendingStories(value: unknown): TrendingStory[] | null {
       continue;
     }
 
-    try {
-      const sourceUrl = new URL(row.source_url);
-      if (sourceUrl.protocol !== 'https:' || sourceUrl.username || sourceUrl.password) continue;
-    } catch {
-      continue;
-    }
+    if (!isSpecificHttpsSourceUrl(row.source_url)) continue;
 
     let imageUrl: string | null = null;
     if (typeof row.image_url === 'string') {

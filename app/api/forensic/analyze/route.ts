@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { analyzeAndStoreArticle } from '@/lib/forensics/analyzeArticle';
+import { isSpecificHttpsSourceUrl } from '@/lib/forensics/sourceLinks';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { isCivicNewsCategory } from '@/lib/newsCategories';
 
@@ -13,16 +14,6 @@ function asObject(value: unknown): Record<string, unknown> | undefined {
 
 function asString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined;
-}
-
-function isPublicHttpsUrl(value: unknown): value is string {
-  if (typeof value !== 'string') return false;
-  try {
-    const url = new URL(value);
-    return url.protocol === 'https:' && Boolean(url.hostname) && !url.username && !url.password;
-  } catch {
-    return false;
-  }
 }
 
 export async function POST(request: Request) {
@@ -42,10 +33,10 @@ export async function POST(request: Request) {
   const category = asString(body?.category);
 
   if (!title || title.length > 500 || !sourceName || sourceName.length > 150 ||
-      !isPublicHttpsUrl(sourceUrl) || !articleText || articleText.length < 80 ||
+      !isSpecificHttpsSourceUrl(sourceUrl) || !articleText || articleText.length < 80 ||
       articleText.length > 50000 || !isCivicNewsCategory(category)) {
     return NextResponse.json(
-      { error: 'Provide a title, publisher, HTTPS article URL, article text (80–50,000 characters), and valid category.' },
+      { error: 'Provide a title, publisher, specific HTTPS article URL (not a homepage), article text (80–50,000 characters), and valid category.' },
       { status: 400 },
     );
   }

@@ -2,7 +2,8 @@ import 'server-only';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { computeArticleScore } from '@/lib/scoring/engine';
-import type { EvidenceStatus, EvidenceType, NewsCategory } from '@/types';
+import { isSpecificHttpsSourceUrl } from '@/lib/forensics/sourceLinks';
+import type { EvidenceStatus, NewsCategory } from '@/types';
 
 const EVIDENCE_STATUSES: EvidenceStatus[] = [
   'Well-supported',
@@ -12,26 +13,6 @@ const EVIDENCE_STATUSES: EvidenceStatus[] = [
   'Insufficient evidence',
   'Contradicted by available evidence',
 ];
-
-const EVIDENCE_TYPES: EvidenceType[] = [
-  'Official document',
-  'News source',
-  'External source',
-  'Photo',
-  'Video',
-  'Dataset',
-  'Firsthand account',
-];
-
-interface SourceDocument {
-  id: string;
-  type: EvidenceType;
-  title: string;
-  description: string;
-  source_url: string;
-  provenance_note: string;
-  uploader_pseudonym: string;
-}
 
 interface AssessedClaim {
   claim_text: string;
@@ -73,16 +54,6 @@ function asString(value: unknown): string | undefined {
 
 function asStringList(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
-}
-
-function isPublicHttpsUrl(value: unknown): value is string {
-  if (typeof value !== 'string') return false;
-  try {
-    const url = new URL(value);
-    return url.protocol === 'https:' && Boolean(url.hostname) && !url.username && !url.password;
-  } catch {
-    return false;
-  }
 }
 
 function parseClaims(value: unknown, sourceIds: Set<string>): AssessedClaim[] | null {
@@ -128,42 +99,14 @@ export async function analyzeAndStoreArticle(
   supabase: SupabaseClient,
   input: ArticleAssessmentInput,
 ): Promise<ArticleAssessmentResult> {
+  if (!isSpecificHttpsSourceUrl(input.sourceUrl)) {
+    return { ok: false, status: 400, error: 'Provide a specific HTTPS article URL, not a publisher homepage.' };
+  }
+
   const aiServiceUrl = process.env.AI_SERVICE_URL;
   if (!aiServiceUrl) {
     return { ok: false, status: 503, error: 'Claim assessment is not configured. Set AI_SERVICE_URL on the server.' };
   }
-
-  const { data: evidenceRows, error: evidenceError } = await supabase
-    .from('evidence_items')
-    .select('id,type,title,description,source_url,provenance_note,uploader_pseudonym,is_demo')
-    .eq('is_demo', false)
-    .not('source_url', 'is', null)
-    .order('created_at', { ascending: false })
-    .limit(30);
-
-  if (evidenceError) {
-    console.error('Unable to load source records for claim assessment:', evidenceError.message);
-    return { ok: false, status: 503, error: 'Could not load source records. Apply the forensic intake database migration and try again.' };
-  }
-
-  const sourceDocuments: SourceDocument[] = (evidenceRows ?? [])
-    .filter((row) => row.is_demo !== true && isPublicHttpsUrl(row.source_url))
-    .filter((row) => {
-      const hostname = new URL(row.source_url).hostname.toLowerCase();
-      return !hostname.startsWith('example.') && !hostname.includes('.example.');
-    })
-    .map((row) => {
-      const type = row.type as EvidenceType;
-      return {
-        id: row.id,
-        type: EVIDENCE_TYPES.includes(type) ? type : 'External source',
-        title: row.title,
-        description: row.description,
-        source_url: row.source_url,
-        provenance_note: row.provenance_note,
-        uploader_pseudonym: row.uploader_pseudonym,
-      };
-    });
 
   let aiResponse: Response;
   try {
@@ -175,7 +118,8 @@ export async function analyzeAndStoreArticle(
         source_name: input.sourceName,
         source_url: input.sourceUrl,
         article_text: input.articleText,
-        source_documents: sourceDocuments,
+        // Existing evidence records belong to other claims and must not be reused here.
+        source_documents: [],
       }),
       signal: AbortSignal.timeout(65000),
       cache: 'no-store',
@@ -193,7 +137,7 @@ export async function analyzeAndStoreArticle(
   }
 
   const result = asObject(await aiResponse.json().catch(() => null));
-  const claims = parseClaims(result?.claims, new Set(sourceDocuments.map((document) => document.id)));
+  const claims = parseClaims(result?.claims, new Set());
   if (!claims) {
     return { ok: false, status: 502, error: 'The assessment service returned no valid claim breakdown.' };
   }
@@ -258,28 +202,6 @@ export async function analyzeAndStoreArticle(
       throw new Error(claimError?.message ?? 'Claim records could not be saved.');
     }
 
-    const evidenceInserts = claims.flatMap((claim, index) => {
-      const claimId = claimRows[index].id;
-      return claim.evidence_ids.flatMap((evidenceId) => {
-        const source = sourceDocuments.find((document) => document.id === evidenceId);
-        if (!source) return [];
-        return [{
-          claim_id: claimId,
-          type: source.type,
-          title: source.title,
-          description: source.description,
-          source_url: source.source_url,
-          provenance_note: source.provenance_note,
-          uploader_pseudonym: source.uploader_pseudonym,
-          is_demo: false,
-        }];
-      });
-    });
-
-    if (evidenceInserts.length > 0) {
-      const { error } = await supabase.from('evidence_items').insert(evidenceInserts);
-      if (error) throw new Error(error.message);
-    }
   } catch (error) {
     console.error('Unable to persist the full claim assessment:', error);
     const { error: rollbackError } = await supabase.from('articles').delete().eq('id', articleId);

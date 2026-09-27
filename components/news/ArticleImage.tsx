@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   BriefcaseBusiness,
   GraduationCap,
@@ -11,6 +11,7 @@ import {
   Trees,
 } from 'lucide-react';
 import type { Article, NewsCategory } from '@/types';
+import { isSpecificHttpsSourceUrl } from '@/lib/forensics/sourceLinks';
 
 const CATEGORY_ICONS: Partial<Record<NewsCategory, typeof Landmark>> = {
   Politics: Landmark,
@@ -30,13 +31,15 @@ interface ArticleImageProps {
 }
 
 export function ArticleImage({ article, className = '', compact = false, overlay }: ArticleImageProps) {
-  const [imageFailed, setImageFailed] = useState(false);
+  const [failedImageSource, setFailedImageSource] = useState<string>();
   const CategoryIcon = CATEGORY_ICONS[article.category] ?? Landmark;
-  const imageIsUsable = Boolean(isPublicHttpsUrl(article.imageUrl) && !imageFailed);
-
-  useEffect(() => {
-    setImageFailed(false);
-  }, [article.imageUrl]);
+  const sourceUrl = isSpecificHttpsSourceUrl(article.sourceUrl) ? article.sourceUrl : undefined;
+  const imageSourceKey = JSON.stringify([article.imageUrl, sourceUrl]);
+  const imageIsUsable = Boolean(
+    sourceUrl &&
+    isPublicHttpsUrl(article.imageUrl) &&
+    failedImageSource !== imageSourceKey,
+  );
 
   return (
     <figure className={className}>
@@ -49,10 +52,14 @@ export function ArticleImage({ article, className = '', compact = false, overlay
             sizes={compact ? '(max-width: 768px) 100vw, 50vw' : '(max-width: 1024px) 100vw, 75vw'}
             unoptimized
             className="object-cover"
-            onError={() => setImageFailed(true)}
+            onError={() => setFailedImageSource(imageSourceKey)}
           />
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/50 via-slate-900 to-slate-950">
+          <div
+            role="img"
+            aria-label={`${article.category} story illustration`}
+            className="absolute inset-0 flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/50 via-slate-900 to-slate-950"
+          >
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-indigo-200">
               <CategoryIcon className="h-8 w-8" aria-hidden="true" />
             </div>
@@ -65,11 +72,11 @@ export function ArticleImage({ article, className = '', compact = false, overlay
         <span>
           {imageIsUsable
             ? <>Image: <span className="text-slate-400">{article.imageCredit || article.sourceName}</span></>
-            : <>Category illustration · Publisher image unavailable</>}
+            : <>Category illustration · No attributed publisher image available</>}
         </span>
-        {article.sourceUrl ? (
+        {sourceUrl ? (
           <a
-            href={article.sourceUrl}
+            href={sourceUrl}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1 text-indigo-300 hover:text-indigo-200 hover:underline"

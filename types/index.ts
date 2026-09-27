@@ -16,17 +16,11 @@ export type PublishIntent =
 export type NewsCategory =
   | 'Politics'
   | 'Education'
-  | 'Technology'
   | 'Business'
   | 'Environment'
-  | 'Science'
-  | 'Sports'
-  | 'Sports & Media Ethics'
-  | 'Culture'
   | 'Public Safety'
   | 'Health'
-  | 'High Hoax Risk'
-  | 'Other';
+  | 'High Hoax Risk';
 
 export type EvidenceStatus =
   | 'Well-supported'

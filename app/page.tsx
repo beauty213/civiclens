@@ -3,8 +3,10 @@ import { ArrowRight, CheckCircle2, FileText, HelpCircle, ShieldAlert, Users } fr
 import { AiShowdownWidget } from '@/components/home/AiShowdownWidget';
 import { StoryPulseFilters } from '@/components/home/StoryPulseFilters';
 import { HowItWorksModal } from '@/components/home/HowItWorksModal';
+import { ArticleAssessmentBadge } from '@/components/news/ArticleAssessmentBadge';
 import { fetchArticles, fetchCitizenReports, fetchCivicQuestions } from '@/lib/dataService';
 import { computeArticleScore } from '@/lib/scoring/engine';
+import { isSpecificHttpsSourceUrl } from '@/lib/forensics/sourceLinks';
 
 const SHOW_SECONDARY_HOME_SECTIONS = process.env.NEXT_PUBLIC_ENABLE_SECONDARY_HOME_SECTIONS === 'true';
 
@@ -40,8 +42,9 @@ export default async function HomePage() {
   const grounded = score?.verifiedCount ?? 0;
   const speculative = score?.unverifiedCount ?? 0;
   const disputed = score?.contradictedCount ?? 0;
-  const receipts = featured?.claims?.reduce((total, claim) => total + (claim.evidence?.length ?? 0), 0) ?? 0;
-  const primaryRecords = featured?.claims?.flatMap((claim) => claim.evidence ?? []).filter((evidence) => Boolean(evidence.sourceUrl)) ?? [];
+  const primaryRecords = featured?.claims?.flatMap((claim) => claim.evidence ?? [])
+    .filter((evidence) => isSpecificHttpsSourceUrl(evidence.sourceUrl)) ?? [];
+  const receipts = primaryRecords.length;
 
   return (
     <div className="space-y-6 pb-12">
@@ -82,6 +85,7 @@ export default async function HomePage() {
                 </div>
                 <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_250px] lg:items-center">
                   <div>
+                    <ArticleAssessmentBadge article={featured} />
                     <h2 className="max-w-3xl text-3xl font-bold leading-[1.08] tracking-tight text-zinc-50 sm:text-5xl">{featured.title}</h2>
                     <p className="mt-4 max-w-2xl text-sm leading-relaxed text-zinc-400 sm:text-base">{featured.summary}</p>
                     <div className="mt-5 flex flex-wrap gap-2">
@@ -106,16 +110,19 @@ export default async function HomePage() {
                 </Link>
                 <div className="mt-6 border-t border-zinc-800/80 pt-4">
                   <div className="flex flex-wrap gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1 font-mono text-[10px] text-indigo-300"><FileText className="h-3.5 w-3.5" />{receipts} primary receipt{receipts === 1 ? '' : 's'} attached</span>
-                    <span className="rounded-full border border-zinc-700 bg-zinc-900 px-2.5 py-1 font-mono text-[10px] text-zinc-500">0 baseline lab records found</span>
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1 font-mono text-[10px] text-indigo-300"><FileText className="h-3.5 w-3.5" />{receipts} specific source link{receipts === 1 ? '' : 's'} attached</span>
                   </div>
                   <div className="mt-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
                     <p className="font-mono text-[10px] uppercase tracking-wider text-emerald-300">Reality pill</p>
-                    <p className="mt-1 text-sm text-zinc-200">The strongest sponsorship records are documented; the follower-growth and airtime comparisons still need fuller methodology.</p>
+                    <p className="mt-1 text-sm text-zinc-200">
+                      {receipts > 0
+                        ? `${receipts} specific source record${receipts === 1 ? '' : 's'} are linked for review.`
+                        : 'No specific source documents are linked to this story yet.'}
+                    </p>
                     {primaryRecords.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
                         {primaryRecords.slice(0, 3).map((record) => (
-                          <a key={record.id} href={record.sourceUrl} target="_blank" rel="noreferrer" className="font-mono text-[10px] text-indigo-300 hover:text-indigo-200 hover:underline">Download {record.title} ↗</a>
+                          <a key={record.id} href={record.sourceUrl} target="_blank" rel="noreferrer" className="font-mono text-[10px] text-indigo-300 hover:text-indigo-200 hover:underline">Open {record.title} ↗</a>
                         ))}
                       </div>
                     )}

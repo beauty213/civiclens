@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Article } from '@/types';
 import { computeArticleScore } from '@/lib/scoring/engine';
 import { ArrowUpRight, MapPin, Trophy } from 'lucide-react';
+import { ArticleAssessmentBadge } from '@/components/news/ArticleAssessmentBadge';
 import { ArticleImage } from '@/components/news/ArticleImage';
 
 interface StoryCardProps {
@@ -39,15 +40,12 @@ export function StoryCard({ article }: StoryCardProps) {
               )}
             />
           </div>
-          {article.isDemo && (
-            <p className="mb-3 w-fit rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-amber-300">
-              Demo story · not verified
-            </p>
-          )}
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <ArticleAssessmentBadge article={article} />
+          </div>
           {article.intakeMethod === 'auto' && (
             <p className="mb-3 w-fit rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-[10px] text-sky-200">
-              Google Search result
-              {article.assessmentStatus === 'in_progress' && ' · evidence assessment in progress'}
+              Auto-fetched · Google Search
             </p>
           )}
           <div className="flex items-center justify-between gap-3">

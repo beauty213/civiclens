@@ -7,7 +7,8 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { ClaimDiscussionSection } from '@/components/discussion/ClaimDiscussionSection';
 import { AddEvidenceModal } from './AddEvidenceModal';
 import { attachEvidenceToClaim } from '@/lib/dataService';
-import { ShieldCheck, FileText, HelpCircle, AlertOctagon, ExternalLink, PlusCircle } from 'lucide-react';
+import { isSpecificHttpsSourceUrl } from '@/lib/forensics/sourceLinks';
+import { FileText, HelpCircle, AlertOctagon, ExternalLink, PlusCircle } from 'lucide-react';
 
 interface ClaimLensViewProps {
   claims: Claim[];
@@ -136,7 +137,7 @@ export function ClaimLensView({ claims }: ClaimLensViewProps) {
                       Provenance: <strong className="text-zinc-400">{ev.provenanceNote}</strong> (by{' '}
                       <span className="font-mono text-indigo-300">{ev.uploaderPseudonym}</span>)
                     </span>
-                    {ev.sourceUrl && (
+                    {isSpecificHttpsSourceUrl(ev.sourceUrl) ? (
                       <a
                         href={ev.sourceUrl}
                         target="_blank"
@@ -145,7 +146,7 @@ export function ClaimLensView({ claims }: ClaimLensViewProps) {
                       >
                         Source Link <ExternalLink className="w-3 h-3" />
                       </a>
-                    )}
+                    ) : <span className="text-[10px] text-amber-400">No specific public source link</span>}
                   </div>
                 </div>
               ))}
@@ -195,7 +196,6 @@ export function ClaimLensView({ claims }: ClaimLensViewProps) {
       <AddEvidenceModal
         isOpen={isEvidenceModalOpen}
         onClose={() => setIsEvidenceModalOpen(false)}
-        claimId={activeClaim.id}
         claimText={activeClaim.claimText}
         onEvidenceAdded={handleEvidenceAdded}
       />

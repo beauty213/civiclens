@@ -3,12 +3,12 @@
 
 import React, { useState } from 'react';
 import { EvidenceType, EvidenceItem } from '@/types';
-import { X, FileText, CheckCircle2, ShieldCheck, Link2 } from 'lucide-react';
+import { isSpecificHttpsSourceUrl } from '@/lib/forensics/sourceLinks';
+import { X, ShieldCheck } from 'lucide-react';
 
 interface AddEvidenceModalProps {
   isOpen: boolean;
   onClose: () => void;
-  claimId: string;
   claimText: string;
   onEvidenceAdded: (item: EvidenceItem) => void;
 }
@@ -26,7 +26,6 @@ const EVIDENCE_TYPES: EvidenceType[] = [
 export function AddEvidenceModal({
   isOpen,
   onClose,
-  claimId,
   claimText,
   onEvidenceAdded,
 }: AddEvidenceModalProps) {
@@ -34,6 +33,7 @@ export function AddEvidenceModal({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [sourceUrl, setSourceUrl] = useState('');
+  const [sourceUrlError, setSourceUrlError] = useState<string | null>(null);
   const [provenanceNote, setProvenanceNote] = useState('');
   const [pseudonym, setPseudonym] = useState('Observer_Hyd_04');
 
@@ -43,12 +43,18 @@ export function AddEvidenceModal({
     e.preventDefault();
     if (!title.trim() || !description.trim()) return;
 
+    const trimmedSourceUrl = sourceUrl.trim();
+    if (trimmedSourceUrl && !isSpecificHttpsSourceUrl(trimmedSourceUrl)) {
+      setSourceUrlError('Use a specific HTTPS document or article link, not a homepage.');
+      return;
+    }
+
     const newEvidence: EvidenceItem = {
       id: `ev-${Date.now()}`,
       type,
       title: title.trim(),
       description: description.trim(),
-      sourceUrl: sourceUrl.trim() || undefined,
+      sourceUrl: trimmedSourceUrl || undefined,
       date: new Date().toISOString().split('T')[0],
       uploaderPseudonym: pseudonym,
       provenanceNote: provenanceNote.trim() || 'Direct community upload via Evidence Lab.',
@@ -138,9 +144,13 @@ export function AddEvidenceModal({
               type="url"
               placeholder="https://example.gov.in/disclosures/doc.pdf"
               value={sourceUrl}
-              onChange={(e) => setSourceUrl(e.target.value)}
+              onChange={(e) => {
+                setSourceUrl(e.target.value);
+                setSourceUrlError(null);
+              }}
               className="w-full bg-zinc-950 border border-zinc-800 rounded px-2.5 py-1.5 text-zinc-100 outline-none focus:border-indigo-500"
             />
+            {sourceUrlError && <p role="alert" className="mt-1 text-[10px] text-rose-300">{sourceUrlError}</p>}
           </div>
 
           {/* Provenance Note */}

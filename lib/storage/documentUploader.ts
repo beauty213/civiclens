@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 import { EvidenceItem, EvidenceType } from '@/types';
+import { isSpecificHttpsSourceUrl } from '@/lib/forensics/sourceLinks';
 
 export const EVIDENCE_BUCKET = 'evidence-documents';
 export const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB limit
@@ -117,6 +118,15 @@ export async function uploadEvidenceDocument(
       .getPublicUrl(uploadData.path);
 
     const publicUrl = publicUrlData.publicUrl;
+    if (!isSpecificHttpsSourceUrl(publicUrl)) {
+      const { error: cleanupError } = await supabase.storage
+        .from(EVIDENCE_BUCKET)
+        .remove([uploadData.path]);
+      if (cleanupError) {
+        console.error('Unable to remove evidence file with an invalid public URL:', cleanupError.message);
+      }
+      return { success: false, error: 'Storage did not return a specific public HTTPS document URL.' };
+    }
 
     const evidencePayload = {
       claim_id: metadata.claimId || null,
@@ -149,10 +159,12 @@ export async function uploadEvidenceDocument(
       storagePath: uploadData.path,
       evidenceItem: itemData as unknown as EvidenceItem,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     return {
       success: false,
-      error: err.message || 'An unexpected error occurred during document upload.',
+      error: err instanceof Error
+        ? err.message
+        : 'An unexpected error occurred during document upload.',
     };
   }
 }

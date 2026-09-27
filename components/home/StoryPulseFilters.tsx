@@ -5,7 +5,7 @@ import { BriefcaseBusiness, Filter, GraduationCap, HeartPulse, Layers3, Shield, 
 import type { LucideIcon } from 'lucide-react';
 import { Article } from '@/types';
 import { StoryCard } from '@/components/news/StoryCard';
-import { CIVIC_NEWS_CATEGORIES, CivicNewsCategory } from '@/lib/newsCategories';
+import { CIVIC_NEWS_CATEGORIES, CivicNewsCategory, isCivicNewsCategory } from '@/lib/newsCategories';
 
 type PulseFilter = 'all' | CivicNewsCategory;
 
@@ -31,7 +31,8 @@ const FILTERS: Array<{ id: PulseFilter; label: string; icon: LucideIcon }> = [
 export function StoryPulseFilters({ articles }: { articles: Article[] }) {
   const [activeFilter, setActiveFilter] = useState<PulseFilter>('all');
   const visibleArticles = useMemo(() => articles.filter((article) => {
-    return activeFilter === 'all' || article.category === activeFilter;
+    return isCivicNewsCategory(article.category) &&
+      (activeFilter === 'all' || article.category === activeFilter);
   }), [activeFilter, articles]);
 
   return (
@@ -54,8 +55,10 @@ export function StoryPulseFilters({ articles }: { articles: Article[] }) {
         {visibleArticles.length > 0 ? visibleArticles.map((article) => {
           return <StoryCard key={article.id} article={article} />;
         }) : (
-          <div className="rounded-xl border border-dashed border-zinc-800 p-6 text-center text-xs text-zinc-500 md:col-span-2">
-            No civic pulses match this confidence filter yet.
+          <div aria-live="polite" className="rounded-xl border border-dashed border-zinc-800 p-6 text-center text-xs text-zinc-500 md:col-span-2">
+            {activeFilter === 'all'
+              ? 'No stories to show yet — check back soon.'
+              : `No stories in ${activeFilter} yet — check back soon.`}
           </div>
         )}
       </div>

@@ -14,6 +14,8 @@ import { fetchArticleById } from '@/lib/dataService';
 import { computeArticleScore } from '@/lib/scoring/engine';
 import { Article, Claim, EvidenceItem, EvidenceStatus } from '@/types';
 import { ArticleImage } from '@/components/news/ArticleImage';
+import { ArticleAssessmentBadge } from '@/components/news/ArticleAssessmentBadge';
+import { isSpecificHttpsSourceUrl } from '@/lib/forensics/sourceLinks';
 
 const STATUS_STYLES: Record<EvidenceStatus, string> = {
   'Well-supported': 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300',
@@ -55,6 +57,8 @@ function ScoreGauge({ score }: { score: number }) {
 }
 
 function EvidenceCard({ evidence }: { evidence: EvidenceItem }) {
+  const sourceUrl = isSpecificHttpsSourceUrl(evidence.sourceUrl) ? evidence.sourceUrl : undefined;
+
   return (
     <li className="rounded-lg border border-zinc-800 bg-zinc-950/70 p-3">
       <div className="flex items-start gap-2">
@@ -62,9 +66,9 @@ function EvidenceCard({ evidence }: { evidence: EvidenceItem }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <h4 className="text-xs font-medium text-zinc-100">{evidence.title}</h4>
-            {evidence.sourceUrl && (
+            {sourceUrl && (
               <a
-                href={evidence.sourceUrl}
+                href={sourceUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="shrink-0 text-zinc-500 hover:text-indigo-300"
@@ -86,7 +90,7 @@ function EvidenceCard({ evidence }: { evidence: EvidenceItem }) {
           <p className="mt-2 border-l border-indigo-500/40 pl-2 text-[11px] italic text-zinc-500">
             {evidence.provenanceNote}
           </p>
-          {!evidence.sourceUrl && <p className="mt-2 text-[10px] text-amber-400">No public source link is available for this record.</p>}
+          {!sourceUrl && <p className="mt-2 text-[10px] text-amber-400">No specific public source link is available for this record.</p>}
         </div>
       </div>
     </li>
@@ -251,6 +255,7 @@ export default function ArticleDetailPage() {
   const selectedClaimId = claims.some((claim) => claim.id === selectedClaimIdState)
     ? selectedClaimIdState
     : claims[0]?.id ?? null;
+  const articleSourceUrl = article && isSpecificHttpsSourceUrl(article.sourceUrl) ? article.sourceUrl : undefined;
 
   useEffect(() => {
     let isCurrent = true;
@@ -319,6 +324,7 @@ export default function ArticleDetailPage() {
           <div className="mb-7 space-y-3 border-b border-zinc-800 pb-6">
             <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-zinc-500">
               <span className="rounded border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 text-indigo-300">{article.category}</span>
+              <ArticleAssessmentBadge article={article} />
               <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3 text-indigo-400" />{article.location?.area}, {article.location?.district}</span>
               <span>·</span>
               <span>{new Date(article.publishedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
@@ -327,8 +333,8 @@ export default function ArticleDetailPage() {
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-500">
               <span>
                 By <strong className="text-zinc-300">{article.author}</strong> ·{' '}
-                {article.sourceUrl ? (
-                  <a href={article.sourceUrl} target="_blank" rel="noreferrer" className="text-indigo-300 hover:text-indigo-200">
+                {articleSourceUrl ? (
+                  <a href={articleSourceUrl} target="_blank" rel="noreferrer" className="text-indigo-300 hover:text-indigo-200">
                     {article.sourceName} <ExternalLink className="inline h-3 w-3" />
                   </a>
                 ) : article.sourceName}

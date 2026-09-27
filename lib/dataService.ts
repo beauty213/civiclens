@@ -1,7 +1,9 @@
 // lib/dataService.ts
-import { Article, Claim, CitizenReport, CivicQuestion, EvidenceItem, EvidenceStatus, EvidenceType, LocationHierarchy, NewsCategory } from '@/types';
+import { Article, Claim, CitizenReport, CivicQuestion, EvidenceItem, EvidenceStatus, EvidenceType, LocationHierarchy } from '@/types';
 import { MOCK_ARTICLES, MOCK_CITIZEN_REPORTS, MOCK_QUESTIONS } from './mockData';
 import { supabase, isSupabaseConfigured } from './supabase/client';
+import { isCivicNewsCategory } from './newsCategories';
+import { isSpecificHttpsSourceUrl } from './forensics/sourceLinks';
 
 // In-memory working cache for session persistence when Supabase credentials are absent
 const localArticles: Article[] = MOCK_ARTICLES.map((article) => ({
@@ -55,21 +57,6 @@ const EVIDENCE_TYPES: EvidenceType[] = [
   'Firsthand account',
 ];
 
-const NEWS_CATEGORIES: NewsCategory[] = [
-  'Politics',
-  'Education',
-  'Technology',
-  'Business',
-  'Environment',
-  'Science',
-  'Sports',
-  'Sports & Media Ethics',
-  'Culture',
-  'Public Safety',
-  'Health',
-  'Other',
-];
-
 function mapEvidence(row: DataRecord): EvidenceItem {
   const type = asText(row.type) as EvidenceType;
   return {
@@ -77,7 +64,9 @@ function mapEvidence(row: DataRecord): EvidenceItem {
     type: EVIDENCE_TYPES.includes(type) ? type : 'External source',
     title: asText(row.title, 'Untitled record'),
     description: asText(row.description),
-    sourceUrl: asText(row.source_url ?? row.sourceUrl) || undefined,
+    sourceUrl: isSpecificHttpsSourceUrl(row.source_url ?? row.sourceUrl)
+      ? asText(row.source_url ?? row.sourceUrl)
+      : undefined,
     date: asText(row.created_at ?? row.date),
     uploaderPseudonym: asText(row.uploader_pseudonym ?? row.uploaderPseudonym, 'Civic contributor'),
     provenanceNote: asText(row.provenance_note ?? row.provenanceNote),
@@ -101,8 +90,11 @@ function mapClaim(row: DataRecord): Claim {
   };
 }
 
-function mapArticle(value: unknown): Article {
+function mapArticle(value: unknown): Article | undefined {
   const row = asRecord(value) ?? {};
+  const categoryValue = row.category;
+  if (!isCivicNewsCategory(categoryValue)) return undefined;
+
   const locationRow = asRecordList(row.locations ?? row.location)[0] ?? asRecord(row.location) ?? {};
   const location: LocationHierarchy = {
     area: asText(locationRow.area, 'Civic Region'),
@@ -110,9 +102,6 @@ function mapArticle(value: unknown): Article {
     state: asText(locationRow.state, 'India'),
     country: asText(locationRow.country, 'India'),
   };
-  const categoryValue = asText(row.category) as NewsCategory;
-  const category = NEWS_CATEGORIES.includes(categoryValue) ? categoryValue : 'Other';
-
   return {
     id: asText(row.id),
     title: asText(row.title, 'Untitled article'),
@@ -121,7 +110,7 @@ function mapArticle(value: unknown): Article {
     sourceName: asText(row.source_name ?? row.sourceName, 'CivicLens'),
     author: asText(row.author, 'Civic contributor'),
     publishedAt: asText(row.published_at ?? row.publishedAt),
-    category,
+    category: categoryValue,
     location,
     claimsCount: asRecordList(row.claims).length,
     unresolvedQuestionsCount: 0,
@@ -130,7 +119,9 @@ function mapArticle(value: unknown): Article {
     imageUrl: asText(row.image_url ?? row.imageUrl) || undefined,
     imageCaption: asText(row.image_caption ?? row.imageCaption) || undefined,
     imageCredit: asText(row.image_credit ?? row.imageCredit) || undefined,
-    sourceUrl: asText(row.source_url ?? row.sourceUrl) || undefined,
+    sourceUrl: isSpecificHttpsSourceUrl(row.source_url ?? row.sourceUrl)
+      ? asText(row.source_url ?? row.sourceUrl)
+      : undefined,
     isDemo: row.is_demo === true,
     intakeMethod: row.intake_method === 'auto' ? 'auto' : 'manual',
     assessmentStatus: row.assessment_status === 'in_progress' ? 'in_progress' : 'complete',
@@ -151,7 +142,17 @@ export async function fetchArticles(): Promise<Article[]> {
         console.warn('Supabase article fetch failed, falling back to local dataset.', error.message);
       }
       if (!error && data && data.length > 0) {
-        return data.map(mapArticle);
+        const articles = data
+          .map(mapArticle)
+          .filter((article): article is Article => article !== undefined);
+        if (articles.length > 0) {
+          if (articles.length !== data.length) {
+            console.warn('Ignoring articles with categories outside the current CivicLens taxonomy.', {
+              ignoredCount: data.length - articles.length,
+            });
+          }
+          return articles;
+        }
       }
     } catch (err) {
       console.warn('Supabase fetch failed, falling back to local dataset.', err);

@@ -255,6 +255,13 @@ def is_safe_publisher_url(value: str) -> bool:
         return False
 
 
+def is_specific_publisher_url(value: str) -> bool:
+    try:
+        return is_safe_publisher_url(value) and bool(urlsplit(value).path.strip("/"))
+    except ValueError:
+        return False
+
+
 def is_usable_image_url(value: str, base_url: str) -> str | None:
     absolute = urljoin(base_url, value.strip())
     if not is_safe_publisher_url(absolute):
@@ -483,6 +490,7 @@ def find_trending_stories(payload: TrendingRequest) -> TrendingResponse:
             or story.category in seen_categories
             or not isinstance(raw_source_url, str)
             or raw_source_url not in grounded_urls
+            or not is_specific_publisher_url(raw_source_url)
         ):
             continue
         image_url, image_caption, page_text, page_headline, page_source_name = extract_publisher_page(raw_source_url)
