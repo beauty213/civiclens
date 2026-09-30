@@ -55,6 +55,10 @@ const EVIDENCE_TYPES: EvidenceType[] = [
   'Video',
   'Dataset',
   'Firsthand account',
+  'official_record',
+  'sensor_log',
+  'eyewitness_account',
+  'expert_analysis',
 ];
 
 function mapEvidence(row: DataRecord): EvidenceItem {
@@ -71,6 +75,7 @@ function mapEvidence(row: DataRecord): EvidenceItem {
     uploaderPseudonym: asText(row.uploader_pseudonym ?? row.uploaderPseudonym, 'Civic contributor'),
     provenanceNote: asText(row.provenance_note ?? row.provenanceNote),
     isDemo: row.is_demo === true,
+    isVerified: row.is_verified === true,
   };
 }
 
@@ -80,8 +85,11 @@ function mapClaim(row: DataRecord): Claim {
   return {
     id: asText(row.id),
     claimText: asText(row.claim_text ?? row.claimText),
+    extractedQuote: asText(row.extracted_quote ?? row.extractedQuote) || undefined,
     speakerOrSource: asText(row.speaker_or_source ?? row.speakerOrSource, 'Unspecified source'),
     status: EVIDENCE_STATUSES.includes(status) ? status : 'Needs verification',
+    weight: typeof row.weight === 'number' ? row.weight : undefined,
+    orderIndex: typeof row.order_index === 'number' ? row.order_index : undefined,
     statusExplanation: asText(row.status_explanation ?? row.statusExplanation),
     evidence: asRecordList(evidenceRows).map(mapEvidence),
     missingInformation: asTextList(row.missing_information ?? row.missingInformation),
@@ -102,6 +110,11 @@ function mapArticle(value: unknown): Article | undefined {
     state: asText(locationRow.state, 'India'),
     country: asText(locationRow.country, 'India'),
   };
+  const claimRows = asRecordList(row.claims).sort((left, right) => {
+    const leftOrder = typeof left.order_index === 'number' ? left.order_index : 0;
+    const rightOrder = typeof right.order_index === 'number' ? right.order_index : 0;
+    return leftOrder - rightOrder;
+  });
   return {
     id: asText(row.id),
     title: asText(row.title, 'Untitled article'),
@@ -112,10 +125,10 @@ function mapArticle(value: unknown): Article | undefined {
     publishedAt: asText(row.published_at ?? row.publishedAt),
     category: categoryValue,
     location,
-    claimsCount: asRecordList(row.claims).length,
+    claimsCount: claimRows.length,
     unresolvedQuestionsCount: 0,
     citizenReportsCount: 0,
-    claims: asRecordList(row.claims).map(mapClaim),
+    claims: claimRows.map(mapClaim),
     imageUrl: asText(row.image_url ?? row.imageUrl) || undefined,
     imageCaption: asText(row.image_caption ?? row.imageCaption) || undefined,
     imageCredit: asText(row.image_credit ?? row.imageCredit) || undefined,
@@ -157,7 +170,7 @@ export async function fetchArticles(): Promise<Article[]> {
       console.warn('Supabase fetch failed; feed articles are unavailable.', err);
     }
   }
-  return [];
+  return localArticles;
 }
 
 export async function fetchArticleById(id: string): Promise<Article | undefined> {

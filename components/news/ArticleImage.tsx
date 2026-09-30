@@ -36,7 +36,7 @@ export function ArticleImage({ article, className = '', compact = false, overlay
   const sourceUrl = isSpecificHttpsSourceUrl(article.sourceUrl) ? article.sourceUrl : undefined;
   const imageSourceKey = JSON.stringify([article.imageUrl, sourceUrl]);
   const imageIsUsable = Boolean(
-    sourceUrl &&
+    article.imageCredit?.trim() &&
     isPublicHttpsUrl(article.imageUrl) &&
     failedImageSource !== imageSourceKey,
   );

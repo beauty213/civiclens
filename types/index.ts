@@ -20,7 +20,10 @@ export type NewsCategory =
   | 'Environment'
   | 'Public Safety'
   | 'Health'
-  | 'High Hoax Risk';
+  | 'High Hoax Risk'
+  | 'Sports & Media Ethics'
+  | 'Municipal Infrastructure'
+  | 'Public Health & Environment';
 
 export type EvidenceStatus =
   | 'Well-supported'
@@ -37,7 +40,11 @@ export type EvidenceType =
   | 'Photo'
   | 'Video'
   | 'Dataset'
-  | 'Firsthand account';
+  | 'Firsthand account'
+  | 'official_record'
+  | 'sensor_log'
+  | 'eyewitness_account'
+  | 'expert_analysis';
 
 export type TimelineStage =
   | 'Initial report'
@@ -71,6 +78,7 @@ export interface EvidenceItem {
   uploaderPseudonym: string;
   provenanceNote: string;
   isDemo?: boolean;
+  isVerified?: boolean;
 }
 
 export interface ClaimComment {
@@ -103,8 +111,11 @@ export interface ArticleCorrection {
 export interface Claim {
   id: string;
   claimText: string;
+  extractedQuote?: string;
   speakerOrSource: string;
   status: EvidenceStatus;
+  weight?: number;
+  orderIndex?: number;
   statusExplanation: string;
   evidence: EvidenceItem[];
   missingInformation: string[];

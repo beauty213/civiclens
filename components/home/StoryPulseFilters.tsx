@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { BriefcaseBusiness, Filter, GraduationCap, HeartPulse, Layers3, Shield, Trees } from 'lucide-react';
+import { BriefcaseBusiness, Construction, Filter, GraduationCap, HeartPulse, Layers3, Shield, Trees, Trophy, Waves } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Article } from '@/types';
 import { StoryCard } from '@/components/news/StoryCard';
@@ -17,6 +17,9 @@ const CATEGORY_ICONS: Record<CivicNewsCategory, LucideIcon> = {
   'Public Safety': Shield,
   Health: HeartPulse,
   'High Hoax Risk': Layers3,
+  'Sports & Media Ethics': Trophy,
+  'Municipal Infrastructure': Construction,
+  'Public Health & Environment': Waves,
 };
 
 const FILTERS: Array<{ id: PulseFilter; label: string; icon: LucideIcon }> = [

@@ -1,6 +1,6 @@
 // lib/mockData.ts
 import { Article, CitizenReport, CivicQuestion } from '@/types';
-import { SPORTS_CONTRAST_ARTICLE } from '@/lib/supabase/fixtures';
+import { CIVICLENS_CASE_STUDIES } from '@/lib/supabase/fixtures';
 
 export const INITIAL_LOCATION = {
   area: 'Gachibowli',
@@ -84,7 +84,7 @@ export const MOCK_CITIZEN_REPORTS: CitizenReport[] = [
 ];
 
 export const MOCK_ARTICLES: Article[] = [
-  SPORTS_CONTRAST_ARTICLE,
+  ...CIVICLENS_CASE_STUDIES,
   {
     id: 'art-001',
     isDemo: true,
